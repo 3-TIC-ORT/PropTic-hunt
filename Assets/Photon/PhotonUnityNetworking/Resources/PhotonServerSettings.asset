@@ -39,6 +39,9 @@ MonoBehaviour:
   - DestroySpaceship
   - Fire
   - RespawnSpaceship
+  - RPC_SetArmedPlayer
+  - RPC_TakeDamage
+  - RPC_ShowBulletVisual
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 0

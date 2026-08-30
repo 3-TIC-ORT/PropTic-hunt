@@ -2571,7 +2571,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1cf8a130d40234493a136af27e4026ea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NetworkManager
-  maxPlayersPerRoom: 2
+  maxPlayersPerRoom: 3
 --- !u!4 &1427491494
 Transform:
   m_ObjectHideFlags: 0

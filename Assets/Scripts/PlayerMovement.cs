@@ -1,7 +1,9 @@
+using Photon.Pun;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerMovement : MonoBehaviour
+[RequireComponent(typeof(PhotonView))]
+public class PlayerMovement : MonoBehaviourPun
 {
     [Header("Movimiento")]
     public float speed = 5f;
@@ -11,12 +13,12 @@ public class PlayerMovement : MonoBehaviour
     [Header("Salto y gravedad")]
     public float jumpHeight = 1.5f;
     public float gravity = -9.81f;
-    public float fallMultiplier = 2.5f;   // qué tan más rápido cae que sube
-    public float lowJumpMultiplier = 2f;  // si soltás el espacio antes, corta el salto
+    public float fallMultiplier = 2.5f;
+    public float lowJumpMultiplier = 2f;
 
     [Header("Ayudas de control (feel)")]
-    public float coyoteTime = 0.15f;      // margen para saltar tras dejar el borde
-    public float jumpBufferTime = 0.15f;  // margen para que el salto "se guarde" antes de tocar piso
+    public float coyoteTime = 0.15f;
+    public float jumpBufferTime = 0.15f;
 
     private CharacterController controller;
     private float verticalRotation = 0f;
@@ -29,11 +31,30 @@ public class PlayerMovement : MonoBehaviour
     void Start()
     {
         controller = GetComponent<CharacterController>();
+
+        // Si este objeto NO me pertenece (es el jugador remoto),
+        // apago cámara y audio para no pisar al jugador local,
+        // y no proceso su input.
+        if (!photonView.IsMine)
+        {
+            Camera cam = cameraHolder.GetComponentInChildren<Camera>();
+            if (cam != null) cam.enabled = false;
+
+            AudioListener listener = cameraHolder.GetComponentInChildren<AudioListener>();
+            if (listener != null) listener.enabled = false;
+
+            enabled = false; // apaga este script entero para el remoto
+            return;
+        }
+
         Cursor.lockState = CursorLockMode.Locked;
     }
 
     void Update()
     {
+        // Por las dudas (doble seguro si enabled=false no alcanzó a tiempo)
+        if (!photonView.IsMine) return;
+
         // --- Lectura de inputs ---
         Vector2 moveInput = Vector2.zero;
         Vector2 lookInput = Vector2.zero;
@@ -65,10 +86,6 @@ public class PlayerMovement : MonoBehaviour
         verticalRotation = Mathf.Clamp(verticalRotation, -80f, 80f);
         cameraHolder.localRotation = Quaternion.Euler(verticalRotation, 0f, 0f);
 
-        // --- Movimiento horizontal ---
-        Vector3 move = transform.right * moveInput.x + transform.forward * moveInput.y;
-        controller.Move(move * speed * Time.deltaTime);
-
         // --- Coyote time: cuenta regresiva desde que dejás el piso ---
         if (controller.isGrounded)
             coyoteTimeCounter = coyoteTime;
@@ -92,24 +109,26 @@ public class PlayerMovement : MonoBehaviour
         // --- Gravedad variable (caída realista) ---
         if (velocity.y < 0)
         {
-            // Cayendo: gravedad más fuerte
             velocity.y += gravity * fallMultiplier * Time.deltaTime;
         }
         else if (velocity.y > 0 && !isHoldingJump)
         {
-            // Soltó el botón antes de tiempo: corta el salto (salto más bajo)
             velocity.y += gravity * lowJumpMultiplier * Time.deltaTime;
         }
         else
         {
-            // Subida normal
             velocity.y += gravity * Time.deltaTime;
         }
 
-        // Evitar que la velocidad negativa se acumule infinito estando en el piso
         if (controller.isGrounded && velocity.y < 0)
             velocity.y = -2f;
 
-        controller.Move(velocity * Time.deltaTime);
+        // --- Movimiento horizontal ---
+        Vector3 move = transform.right * moveInput.x + transform.forward * moveInput.y;
+        move *= speed;
+
+        // --- Combinamos horizontal + vertical en UN SOLO Move() ---
+        Vector3 finalMove = move + velocity;
+        controller.Move(finalMove * Time.deltaTime);
     }
 }
