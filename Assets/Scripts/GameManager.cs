@@ -1,44 +1,88 @@
+using ExitGames.Client.Photon;
 using Photon.Pun;
-using Photon.Realtime;
+using TMPro;
 using UnityEngine;
 
-/// <summary>
-/// Vive en el GameObject "GameManager" de la escena Game.unity.
-/// El Master Client decide aleatoriamente quién recibe el arma,
-/// y lo comunica a TODOS los clientes con un RPC para que la
-/// decisión sea única y compartida.
-/// </summary>
-public class GameManager : MonoBehaviourPun
+public class GameManager : MonoBehaviourPunCallbacks
 {
-    // Guardamos el ActorNumber del jugador armado. -1 = todavía no se decidió.
-    public static int ArmedActorNumber = -1;
+    public static int ArmedActorNumber { get; private set; } = -1;
 
-    void Start()
+    [Header("UI")]
+    [SerializeField] private TMP_Text localRoleText;
+
+    private void Awake()
     {
-        if (PhotonNetwork.IsMasterClient)
+        // El valor ya fue seleccionado en RoomLobby.
+        // No hacemos ningún Random aquí.
+        ArmedActorNumber =
+            RoleManager.GetKillerActorNumber();
+    }
+
+    private void Start()
+    {
+        ApplyRole();
+    }
+
+    public override void OnRoomPropertiesUpdate(
+        Hashtable changedProperties)
+    {
+        if (changedProperties.ContainsKey(
+                RoleManager.KillerActorNumberKey))
         {
-            AssignWeaponRandomly();
+            ApplyRole();
         }
     }
 
-    void AssignWeaponRandomly()
+    private void ApplyRole()
     {
-        Player[] players = PhotonNetwork.PlayerList;
+        ArmedActorNumber =
+            RoleManager.GetKillerActorNumber();
 
-        if (players.Length == 0) return;
+        if (localRoleText == null)
+        {
+            Debug.LogWarning(
+                "[GameManager] No hay texto asignado " +
+                "para mostrar el rol local."
+            );
 
-        int randomIndex = Random.Range(0, players.Length);
-        int chosenActorNumber = players[randomIndex].ActorNumber;
+            return;
+        }
 
-        // AllBuffered: incluso si algún cliente se conecta un poco
-        // después, va a recibir este RPC igual apenas se una.
-        photonView.RPC(nameof(RPC_SetArmedPlayer), RpcTarget.AllBuffered, chosenActorNumber);
+        if (ArmedActorNumber <= 0)
+        {
+            localRoleText.text =
+                "ROL NO ASIGNADO";
+
+            return;
+        }
+
+        if (IsLocalAssassin())
+        {
+            localRoleText.text =
+                "ASESINO";
+        }
+        else
+        {
+            localRoleText.text =
+                "ESCAPISTA";
+        }
     }
 
-    [PunRPC]
-    void RPC_SetArmedPlayer(int actorNumber)
+    public static bool IsAssassinActor(
+        int actorNumber)
     {
-        ArmedActorNumber = actorNumber;
-        Debug.Log($"[GameManager] El jugador armado es el Actor {actorNumber}");
+        return
+            ArmedActorNumber > 0 &&
+            ArmedActorNumber == actorNumber;
+    }
+
+    public static bool IsLocalAssassin()
+    {
+        if (PhotonNetwork.LocalPlayer == null)
+            return false;
+
+        return IsAssassinActor(
+            PhotonNetwork.LocalPlayer.ActorNumber
+        );
     }
 }

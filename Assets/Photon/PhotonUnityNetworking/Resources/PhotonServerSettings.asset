@@ -42,6 +42,9 @@ MonoBehaviour:
   - RPC_SetArmedPlayer
   - RPC_TakeDamage
   - RPC_ShowBulletVisual
+  - RPC_SpawnBullet
+  - RPC_SpawnVisualBullet
+  - RPC_ApplyProp
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 0

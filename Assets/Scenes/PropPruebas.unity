@@ -134,6 +134,7 @@ GameObject:
   - component: {fileID: 118608845}
   - component: {fileID: 118608850}
   - component: {fileID: 118608851}
+  - component: {fileID: 118608852}
   m_Layer: 0
   m_Name: player
   m_TagString: Untagged
@@ -296,6 +297,30 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PropTransform
   detectionRange: 3
+  visualTarget: {fileID: 0}
+  propTag: Propable
+--- !u!114 &118608852
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 118608844}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.PhotonView
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 3
+  OwnershipTransfer: 0
+  observableSearch: 2
+  ObservedComponents: []
+  sceneViewId: 1
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
 --- !u!1 &658505050
 GameObject:
   m_ObjectHideFlags: 0
@@ -414,13 +439,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1236288716}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: 0.13300861, y: -0, z: -0, w: 0.9911149}
+  m_LocalPosition: {x: 0, y: 1.79, z: -3.08}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 658505051}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 15.287, y: 0, z: 0}
 --- !u!114 &1236288720
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -934,6 +959,6 @@ SceneRoots:
   m_Roots:
   - {fileID: 1831207412}
   - {fileID: 2000582577}
-  - {fileID: 1359300586}
   - {fileID: 118608849}
+  - {fileID: 1359300586}
   - {fileID: 1536893865}
