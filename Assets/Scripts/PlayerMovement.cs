@@ -33,6 +33,9 @@ public class PlayerMovement : MonoBehaviourPun
     [Tooltip("Espacio extra alrededor del prop.")]
     [SerializeField] private float propCameraPadding = 1.25f;
 
+    [Tooltip("Altura de los ojos del asesino (primera persona).")]
+    [SerializeField] private float hunterEyeHeight = 1.7f;
+
     [Tooltip("Suavidad al cambiar la distancia de cámara.")]
     [SerializeField] private float cameraDistanceSmooth = 5f;
 
@@ -163,7 +166,13 @@ public class PlayerMovement : MonoBehaviourPun
             return;
 
         // Primera persona.
-        cameraHolder.localPosition = Vector3.zero;
+        // IMPORTANTE: la base del CharacterController está en
+        // localPosition.y = 0 (los "pies" del personaje). Si dejamos
+        // la cámara en Vector3.zero, queda pegada al piso y el
+        // near clip plane corta el suelo, dando la sensación de
+        // que el asesino "atraviesa" el piso. Por eso la subimos
+        // a la altura de los ojos.
+        cameraHolder.localPosition = new Vector3(0f, hunterEyeHeight, 0f);
         cameraHolder.localRotation = Quaternion.identity;
 
         playerCamera.transform.localPosition = Vector3.zero;
@@ -203,22 +212,15 @@ public class PlayerMovement : MonoBehaviourPun
         float mouseX =
             lookInput.x * mouseSensitivity;
 
-        float mouseY =
-            lookInput.y * mouseSensitivity;
-
-        // Rotación horizontal del jugador.
+        // Rotación horizontal del jugador (a los lados).
         transform.Rotate(
             Vector3.up * mouseX
         );
 
-        // Rotación vertical de la cámara.
-        verticalRotation -= mouseY;
-
-        verticalRotation = Mathf.Clamp(
-            verticalRotation,
-            escapistMinVerticalAngle,
-            escapistMaxVerticalAngle
-        );
+        // La cámara del perseguido NO rota verticalmente
+        // (arriba/abajo). Se mantiene siempre en el ángulo
+        // fijo definido por thirdPersonAngle.
+        verticalRotation = thirdPersonAngle;
 
         UpdateEscapistCameraPosition(false);
     }

@@ -457,6 +457,7 @@ MonoBehaviour:
   thirdPersonHeight: 2.2
   thirdPersonAngle: 12
   propCameraPadding: 1.25
+  hunterEyeHeight: 1.8
   cameraDistanceSmooth: 5
   mouseSensitivity: 0.1
   hunterMinVerticalAngle: -80
