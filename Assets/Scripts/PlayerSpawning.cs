@@ -13,6 +13,11 @@ public class PlayerSpawner : MonoBehaviourPunCallbacks
     [SerializeField] private Transform spawnPoint5;
     [SerializeField] private Transform spawnPoint6;
 
+    [Header("Ajuste de suelo")]
+    [SerializeField] private float raycastHeight = 10f;
+    [SerializeField] private float groundOffset = 0.05f;
+    [SerializeField] private LayerMask groundMask = ~0;
+
     private void Start()
     {
         if (!PhotonNetwork.InRoom)
@@ -51,14 +56,12 @@ public class PlayerSpawner : MonoBehaviourPunCallbacks
             spawnPoint6
         };
 
-        // Comprobamos que haya suficientes puntos.
         for (int i = 0; i < players.Length; i++)
         {
             if (spawnPoints[i] == null)
             {
                 Debug.LogError(
-                    $"[Spawn] Falta configurar " +
-                    $"SpawnPoint {i + 1}."
+                    $"[Spawn] Falta configurar SpawnPoint {i + 1}."
                 );
 
                 return;
@@ -89,16 +92,58 @@ public class PlayerSpawner : MonoBehaviourPunCallbacks
         Transform chosenSpawn =
             spawnPoints[localIndex];
 
+        Vector3 spawnPosition =
+            GetGroundedSpawnPosition(
+                chosenSpawn.position
+            );
+
         PhotonNetwork.Instantiate(
             "Player",
-            chosenSpawn.position,
+            spawnPosition,
             chosenSpawn.rotation
         );
 
         Debug.Log(
             $"[Spawn] Actor " +
             $"{PhotonNetwork.LocalPlayer.ActorNumber} " +
-            $"aparece en {chosenSpawn.name}"
+            $"aparece en {chosenSpawn.name} " +
+            $"-> posición final: {spawnPosition}"
         );
+    }
+
+    private Vector3 GetGroundedSpawnPosition(
+        Vector3 originalPosition)
+    {
+        Vector3 rayOrigin =
+            originalPosition +
+            Vector3.up * raycastHeight;
+
+        RaycastHit hit;
+
+        if (Physics.Raycast(
+            rayOrigin,
+            Vector3.down,
+            out hit,
+            raycastHeight * 2f,
+            groundMask,
+            QueryTriggerInteraction.Ignore))
+        {
+            Vector3 groundedPosition =
+                originalPosition;
+
+            // La base del CharacterController está
+            // en la posición Y del objeto raíz.
+            groundedPosition.y =
+                hit.point.y + groundOffset;
+
+            return groundedPosition;
+        }
+
+        Debug.LogWarning(
+            "[Spawn] No se encontró suelo debajo del SpawnPoint. " +
+            "Se utilizará la posición original."
+        );
+
+        return originalPosition;
     }
 }

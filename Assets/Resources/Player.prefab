@@ -17,7 +17,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &5485843259592457802
 RectTransform:
   m_ObjectHideFlags: 0
@@ -447,12 +447,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
   speed: 5
+  acceleration: 14
+  deceleration: 18
   cameraHolder: {fileID: 1659740171015172117}
   playerCamera: {fileID: 8691295644042981004}
   thirdPersonDistance: 5
+  minimumCameraDistance: 3
+  maximumCameraDistance: 12
   thirdPersonHeight: 2.2
   thirdPersonAngle: 12
+  propCameraPadding: 1.25
+  cameraDistanceSmooth: 5
   mouseSensitivity: 0.1
+  hunterMinVerticalAngle: -80
+  hunterMaxVerticalAngle: 80
+  escapistMinVerticalAngle: -60
+  escapistMaxVerticalAngle: 60
   jumpHeight: 1.5
   gravity: -9.81
   fallMultiplier: 2.5

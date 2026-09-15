@@ -8,6 +8,8 @@ public class PlayerMovement : MonoBehaviourPun
 {
     [Header("Movimiento")]
     [SerializeField] private float speed = 5f;
+    [SerializeField] private float acceleration = 14f;
+    [SerializeField] private float deceleration = 18f;
 
     [Header("Cámara")]
     [SerializeField] private Transform cameraHolder;
@@ -25,17 +27,24 @@ public class PlayerMovement : MonoBehaviourPun
     [Tooltip("Altura normal de la cámara.")]
     [SerializeField] private float thirdPersonHeight = 2.2f;
 
-    [Tooltip("Ángulo vertical de la cámara.")]
+    [Tooltip("Ángulo vertical inicial de la cámara.")]
     [SerializeField] private float thirdPersonAngle = 12f;
 
-    [Tooltip("Cuánto espacio extra dejamos alrededor del prop.")]
+    [Tooltip("Espacio extra alrededor del prop.")]
     [SerializeField] private float propCameraPadding = 1.25f;
 
-    [Tooltip("Qué tan rápido se aleja/acerca la cámara.")]
+    [Tooltip("Suavidad al cambiar la distancia de cámara.")]
     [SerializeField] private float cameraDistanceSmooth = 5f;
 
-    [Header("Primera persona")]
+    [Header("Sensibilidad de cámara")]
     [SerializeField] private float mouseSensitivity = 0.1f;
+
+    [Header("Límites de cámara")]
+    [SerializeField] private float hunterMinVerticalAngle = -80f;
+    [SerializeField] private float hunterMaxVerticalAngle = 80f;
+
+    [SerializeField] private float escapistMinVerticalAngle = -60f;
+    [SerializeField] private float escapistMaxVerticalAngle = 60f;
 
     [Header("Salto y gravedad")]
     [SerializeField] private float jumpHeight = 1.5f;
@@ -56,21 +65,24 @@ public class PlayerMovement : MonoBehaviourPun
     private float jumpBufferCounter;
 
     private bool isHoldingJump;
-
     private Vector2 cachedMoveInput;
 
     private bool isHunter;
 
     private float currentCameraDistance;
 
+    // Velocidad horizontal actual.
+    // Se usa para hacer el movimiento más suave.
+    private Vector3 currentHorizontalVelocity;
+
     private void Awake()
     {
-        controller =
-            GetComponent<CharacterController>();
+        controller = GetComponent<CharacterController>();
     }
 
     private void Start()
     {
+        // Este Player pertenece a otro cliente.
         if (!photonView.IsMine)
         {
             DisableRemotePlayerCamera();
@@ -78,13 +90,10 @@ public class PlayerMovement : MonoBehaviourPun
             return;
         }
 
-        Cursor.lockState =
-            CursorLockMode.Locked;
-
+        Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
         DetermineRole();
-
         SetupCamera();
     }
 
@@ -105,9 +114,12 @@ public class PlayerMovement : MonoBehaviourPun
         }
 
         HandleJump();
-
         HandleMovement();
     }
+
+    // =========================================================
+    // ROL
+    // =========================================================
 
     private void DetermineRole()
     {
@@ -117,14 +129,16 @@ public class PlayerMovement : MonoBehaviourPun
             return;
         }
 
-        isHunter =
-            GameManager.IsLocalAssassin();
+        isHunter = GameManager.IsLocalAssassin();
     }
+
+    // =========================================================
+    // CONFIGURACIÓN DE CÁMARA
+    // =========================================================
 
     private void SetupCamera()
     {
-        if (playerCamera == null &&
-            cameraHolder != null)
+        if (playerCamera == null && cameraHolder != null)
         {
             playerCamera =
                 cameraHolder.GetComponentInChildren<Camera>();
@@ -148,17 +162,12 @@ public class PlayerMovement : MonoBehaviourPun
         if (cameraHolder == null)
             return;
 
-        cameraHolder.localPosition =
-            Vector3.zero;
+        // Primera persona.
+        cameraHolder.localPosition = Vector3.zero;
+        cameraHolder.localRotation = Quaternion.identity;
 
-        cameraHolder.localRotation =
-            Quaternion.identity;
-
-        playerCamera.transform.localPosition =
-            Vector3.zero;
-
-        playerCamera.transform.localRotation =
-            Quaternion.identity;
+        playerCamera.transform.localPosition = Vector3.zero;
+        playerCamera.transform.localRotation = Quaternion.identity;
 
         verticalRotation = 0f;
     }
@@ -168,38 +177,60 @@ public class PlayerMovement : MonoBehaviourPun
         if (cameraHolder == null)
             return;
 
-        currentCameraDistance =
-            thirdPersonDistance;
+        currentCameraDistance = thirdPersonDistance;
+
+        verticalRotation = thirdPersonAngle;
 
         UpdateEscapistCameraPosition(true);
     }
+
+    // =========================================================
+    // CÁMARA DEL PERSEGUIDO
+    // =========================================================
 
     private void HandleEscapistCamera()
     {
         if (cameraHolder == null)
             return;
 
-        UpdateEscapistCameraPosition(false);
+        Vector2 lookInput = Vector2.zero;
 
-        // La cámara NO gira con el mouse.
-        cameraHolder.localRotation =
-            Quaternion.Euler(
-                thirdPersonAngle,
-                0f,
-                0f
-            );
+        if (Mouse.current != null)
+        {
+            lookInput = Mouse.current.delta.ReadValue();
+        }
+
+        float mouseX =
+            lookInput.x * mouseSensitivity;
+
+        float mouseY =
+            lookInput.y * mouseSensitivity;
+
+        // Rotación horizontal del jugador.
+        transform.Rotate(
+            Vector3.up * mouseX
+        );
+
+        // Rotación vertical de la cámara.
+        verticalRotation -= mouseY;
+
+        verticalRotation = Mathf.Clamp(
+            verticalRotation,
+            escapistMinVerticalAngle,
+            escapistMaxVerticalAngle
+        );
+
+        UpdateEscapistCameraPosition(false);
     }
 
-    private void UpdateEscapistCameraPosition(
-        bool instant)
+    private void UpdateEscapistCameraPosition(bool instant)
     {
         float targetDistance =
             CalculateCameraDistance();
 
         if (instant)
         {
-            currentCameraDistance =
-                targetDistance;
+            currentCameraDistance = targetDistance;
         }
         else
         {
@@ -219,9 +250,12 @@ public class PlayerMovement : MonoBehaviourPun
                 -currentCameraDistance
             );
 
+        // IMPORTANTE:
+        // Ahora usamos la rotación vertical actual
+        // y NO forzamos siempre thirdPersonAngle.
         cameraHolder.localRotation =
             Quaternion.Euler(
-                thirdPersonAngle,
+                verticalRotation,
                 0f,
                 0f
             );
@@ -236,16 +270,18 @@ public class PlayerMovement : MonoBehaviourPun
         }
     }
 
+    // =========================================================
+    // DISTANCIA DE CÁMARA
+    // =========================================================
+
     private float CalculateCameraDistance()
     {
-        float targetDistance =
-            thirdPersonDistance;
+        float targetDistance = thirdPersonDistance;
 
         Renderer[] renderers =
             GetComponentsInChildren<Renderer>();
 
-        if (renderers == null ||
-            renderers.Length == 0)
+        if (renderers == null || renderers.Length == 0)
         {
             return targetDistance;
         }
@@ -260,22 +296,18 @@ public class PlayerMovement : MonoBehaviourPun
 
         foreach (Renderer renderer in renderers)
         {
-            // No contamos UI ni partículas raras.
             if (renderer == null)
                 continue;
 
             if (!renderer.enabled)
                 continue;
 
-            // No usamos la propia cámara.
             if (renderer.GetComponent<Camera>() != null)
                 continue;
 
             if (!foundRenderer)
             {
-                combinedBounds =
-                    renderer.bounds;
-
+                combinedBounds = renderer.bounds;
                 foundRenderer = true;
             }
             else
@@ -296,8 +328,6 @@ public class PlayerMovement : MonoBehaviourPun
                 combinedBounds.extents.z
             );
 
-        // El prop conserva algo de aire alrededor
-        // para que la cámara no quede pegada.
         float requiredDistance =
             largestExtent *
             propCameraPadding;
@@ -318,13 +348,16 @@ public class PlayerMovement : MonoBehaviourPun
         return targetDistance;
     }
 
+    // =========================================================
+    // CÁMARA DEL ASESINO
+    // =========================================================
+
     private void HandleHunterLook()
     {
         if (cameraHolder == null)
             return;
 
-        Vector2 lookInput =
-            Vector2.zero;
+        Vector2 lookInput = Vector2.zero;
 
         if (Mouse.current != null)
         {
@@ -333,25 +366,24 @@ public class PlayerMovement : MonoBehaviourPun
         }
 
         float mouseX =
-            lookInput.x *
-            mouseSensitivity;
+            lookInput.x * mouseSensitivity;
 
         float mouseY =
-            lookInput.y *
-            mouseSensitivity;
+            lookInput.y * mouseSensitivity;
 
+        // Girar horizontalmente el jugador.
         transform.Rotate(
             Vector3.up * mouseX
         );
 
-        verticalRotation -=
-            mouseY;
+        // Girar verticalmente la cámara.
+        verticalRotation -= mouseY;
 
         verticalRotation =
             Mathf.Clamp(
                 verticalRotation,
-                -80f,
-                80f
+                hunterMinVerticalAngle,
+                hunterMaxVerticalAngle
             );
 
         cameraHolder.localRotation =
@@ -362,10 +394,13 @@ public class PlayerMovement : MonoBehaviourPun
             );
     }
 
+    // =========================================================
+    // INPUT
+    // =========================================================
+
     private void ReadInput()
     {
-        cachedMoveInput =
-            Vector2.zero;
+        cachedMoveInput = Vector2.zero;
 
         if (Keyboard.current == null)
             return;
@@ -397,6 +432,76 @@ public class PlayerMovement : MonoBehaviourPun
         isHoldingJump =
             Keyboard.current.spaceKey.isPressed;
     }
+
+    // =========================================================
+    // MOVIMIENTO
+    // =========================================================
+
+    private void HandleMovement()
+    {
+        Vector3 inputDirection =
+            transform.right *
+            cachedMoveInput.x;
+
+        inputDirection +=
+            transform.forward *
+            cachedMoveInput.y;
+
+        // Evita que diagonal sea más rápida.
+        inputDirection =
+            Vector3.ClampMagnitude(
+                inputDirection,
+                1f
+            );
+
+        Vector3 targetVelocity =
+            inputDirection * speed;
+
+        float movementRate;
+
+        if (inputDirection.sqrMagnitude > 0.01f)
+        {
+            movementRate = acceleration;
+        }
+        else
+        {
+            movementRate = deceleration;
+        }
+
+        // Aceleración / frenado suave.
+        currentHorizontalVelocity =
+            Vector3.MoveTowards(
+                currentHorizontalVelocity,
+                targetVelocity,
+                movementRate *
+                Time.deltaTime
+            );
+
+        Vector3 finalMove =
+            currentHorizontalVelocity +
+            velocity;
+
+        CollisionFlags collisionFlags =
+            controller.Move(
+                finalMove *
+                Time.deltaTime
+            );
+
+        // Si el CharacterController detecta suelo,
+        // mantenemos una pequeña velocidad negativa
+        // para que permanezca pegado al piso.
+        if ((collisionFlags & CollisionFlags.Below) != 0)
+        {
+            if (velocity.y < 0f)
+            {
+                velocity.y = -2f;
+            }
+        }
+    }
+
+    // =========================================================
+    // SALTO Y GRAVEDAD
+    // =========================================================
 
     private void HandleJump()
     {
@@ -463,26 +568,9 @@ public class PlayerMovement : MonoBehaviourPun
         }
     }
 
-    private void HandleMovement()
-    {
-        Vector3 move =
-            transform.right *
-            cachedMoveInput.x;
-
-        move +=
-            transform.forward *
-            cachedMoveInput.y;
-
-        move *= speed;
-
-        Vector3 finalMove =
-            move + velocity;
-
-        controller.Move(
-            finalMove *
-            Time.deltaTime
-        );
-    }
+    // =========================================================
+    // JUGADORES REMOTOS
+    // =========================================================
 
     private void DisableRemotePlayerCamera()
     {
@@ -494,12 +582,16 @@ public class PlayerMovement : MonoBehaviourPun
         }
 
         if (playerCamera != null)
+        {
             playerCamera.enabled = false;
+        }
 
         AudioListener listener =
             GetComponentInChildren<AudioListener>();
 
         if (listener != null)
+        {
             listener.enabled = false;
+        }
     }
 }

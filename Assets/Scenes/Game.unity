@@ -402,6 +402,11 @@ MonoBehaviour:
   spawnPoint4: {fileID: 995451760}
   spawnPoint5: {fileID: 1796147672}
   spawnPoint6: {fileID: 33044851}
+  raycastHeight: 10
+  groundOffset: 0.05
+  groundMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
 --- !u!4 &552460622
 Transform:
   m_ObjectHideFlags: 0
@@ -701,7 +706,7 @@ Transform:
   m_GameObject: {fileID: 1054534452}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -13.06}
+  m_LocalPosition: {x: 0, y: 1, z: -13.06}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1139,7 +1144,7 @@ Transform:
   m_GameObject: {fileID: 1839485762}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -10.6, y: 0.5, z: 9.26}
+  m_LocalPosition: {x: -10.6, y: 1, z: 9.26}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1170,7 +1175,7 @@ Transform:
   m_GameObject: {fileID: 1845528264}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 9.08, y: 0.5, z: 0.95}
+  m_LocalPosition: {x: 9.08, y: 1, z: 0.95}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
