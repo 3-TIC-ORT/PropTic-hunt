@@ -7,7 +7,7 @@ using UnityEngine.InputSystem;
 public class PropTransform : MonoBehaviourPun
 {
     [Header("Detección")]
-    [SerializeField] private float detectionRange = 1.25f;
+    [SerializeField] private float detectionRange = 0.7f;
 
     [Header("Visual del jugador")]
     [SerializeField] private Transform visualTarget;
