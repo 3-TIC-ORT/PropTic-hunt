@@ -7,20 +7,19 @@ using UnityEngine.InputSystem;
 public class PropTransform : MonoBehaviourPun
 {
     [Header("Detección")]
-    [SerializeField] private float detectionRange = 0.7f;
+    [SerializeField] private float detectionRange = 1.25f;
 
     [Header("Visual del jugador")]
+    [Tooltip("Objeto 'Body' del Player (la cápsula que se oculta al disfrazarse).")]
     [SerializeField] private Transform visualTarget;
 
     [Header("Props")]
     [SerializeField] private string propTag = "Propable";
 
-    private MeshFilter visualMeshFilter;
-    private MeshRenderer visualMeshRenderer;
+    private Renderer bodyRenderer;
 
-    private Vector3 originalVisualPosition;
-    private Vector3 originalVisualScale;
-    private Quaternion originalVisualRotation;
+    // Contenedor con copias visuales de todas las piezas del prop.
+    private Transform disguiseRoot;
 
     private GameObject currentTargetProp;
     private GameObject currentProp;
@@ -43,8 +42,6 @@ public class PropTransform : MonoBehaviourPun
         if (!photonView.IsMine)
             return;
 
-        // Necesitamos saber el rol antes de permitir
-        // utilizar la mecánica de props.
         if (!RoleManager.HasKiller)
             return;
 
@@ -65,46 +62,17 @@ public class PropTransform : MonoBehaviourPun
     {
         if (visualTarget == null)
         {
-            Transform body =
-                transform.Find("Body");
-
-            if (body != null)
-            {
-                visualTarget = body;
-            }
-            else
-            {
-                visualTarget = transform;
-            }
+            Transform body = transform.Find("Body");
+            visualTarget = body != null ? body : transform;
         }
 
-        visualMeshFilter =
-            visualTarget.GetComponent<MeshFilter>();
-
-        visualMeshRenderer =
-            visualTarget.GetComponent<MeshRenderer>();
-
-        if (visualMeshFilter == null)
-        {
-            visualMeshFilter =
-                visualTarget.gameObject.AddComponent<MeshFilter>();
-        }
-
-        if (visualMeshRenderer == null)
-        {
-            visualMeshRenderer =
-                visualTarget.gameObject.AddComponent<MeshRenderer>();
-        }
-
-        originalVisualPosition =
-            visualTarget.localPosition;
-
-        originalVisualScale =
-            visualTarget.localScale;
-
-        originalVisualRotation =
-            visualTarget.localRotation;
+        if (bodyRenderer == null)
+            bodyRenderer = visualTarget.GetComponent<Renderer>();
     }
+
+    // =========================================================
+    // DETECCIÓN
+    // =========================================================
 
     private void DetectNearbyProp()
     {
@@ -118,19 +86,16 @@ public class PropTransform : MonoBehaviourPun
                 QueryTriggerInteraction.Ignore
             );
 
-        float closestDistance =
-            float.MaxValue;
+        float closestDistance = float.MaxValue;
 
         foreach (Collider hit in hits)
         {
-            GameObject prop =
-                FindPropObject(hit.transform);
+            GameObject prop = FindPropObject(hit.transform);
 
             if (prop == null)
                 continue;
 
-            // Si ya somos ese prop, no queremos
-            // volver a seleccionarlo.
+            // Si ya somos ese prop, no lo volvemos a seleccionar.
             if (prop == currentProp)
                 continue;
 
@@ -148,11 +113,9 @@ public class PropTransform : MonoBehaviourPun
         }
     }
 
-    private GameObject FindPropObject(
-        Transform hitTransform)
+    private GameObject FindPropObject(Transform hitTransform)
     {
-        Transform current =
-            hitTransform;
+        Transform current = hitTransform;
 
         while (current != null)
         {
@@ -165,14 +128,16 @@ public class PropTransform : MonoBehaviourPun
         return null;
     }
 
+    // =========================================================
+    // TRANSFORMACIÓN (RED)
+    // =========================================================
+
     private void TryTransform()
     {
-        // Tiene que haber un prop realmente cercano.
         if (currentTargetProp == null)
             return;
 
-        int propIndex =
-            GetPropIndex(currentTargetProp);
+        int propIndex = GetPropIndex(currentTargetProp);
 
         if (propIndex < 0)
         {
@@ -184,9 +149,6 @@ public class PropTransform : MonoBehaviourPun
             return;
         }
 
-        // El servidor de decisión acá es el propio dueño
-        // del Player, pero el resultado visual se comunica
-        // a TODOS mediante Photon.
         photonView.RPC(
             nameof(RPC_ApplyProp),
             RpcTarget.All,
@@ -198,26 +160,16 @@ public class PropTransform : MonoBehaviourPun
     {
         return GameObject
             .FindGameObjectsWithTag(propTag)
-            .OrderBy(
-                prop => prop.name,
-                StringComparer.Ordinal
-            )
-            .ThenBy(
-                prop => prop.transform.position.x
-            )
-            .ThenBy(
-                prop => prop.transform.position.y
-            )
-            .ThenBy(
-                prop => prop.transform.position.z
-            )
+            .OrderBy(prop => prop.name, StringComparer.Ordinal)
+            .ThenBy(prop => prop.transform.position.x)
+            .ThenBy(prop => prop.transform.position.y)
+            .ThenBy(prop => prop.transform.position.z)
             .ToArray();
     }
 
     private int GetPropIndex(GameObject prop)
     {
-        GameObject[] props =
-            GetOrderedProps();
+        GameObject[] props = GetOrderedProps();
 
         for (int i = 0; i < props.Length; i++)
         {
@@ -231,11 +183,9 @@ public class PropTransform : MonoBehaviourPun
     [PunRPC]
     private void RPC_ApplyProp(int propIndex)
     {
-        GameObject[] props =
-            GetOrderedProps();
+        GameObject[] props = GetOrderedProps();
 
-        if (propIndex < 0 ||
-            propIndex >= props.Length)
+        if (propIndex < 0 || propIndex >= props.Length)
         {
             Debug.LogError(
                 "[PropTransform] Índice de prop inválido: " +
@@ -245,95 +195,129 @@ public class PropTransform : MonoBehaviourPun
             return;
         }
 
-        GameObject prop =
-            props[propIndex];
-
-        ApplyPropVisual(prop);
+        ApplyPropVisual(props[propIndex]);
     }
 
-    private void ApplyPropVisual(
-        GameObject prop)
+    // =========================================================
+    // VISUAL DEL DISFRAZ
+    // =========================================================
+
+    /// <summary>
+    /// En vez de fusionar todas las mallas en una sola (CombineMeshes),
+    /// copiamos cada pieza del prop (MeshFilter + MeshRenderer) como hija
+    /// de un contenedor. Así no dependemos de que las mallas de Blender
+    /// tengan "Read/Write" activado, ni del límite de 65.535 vértices,
+    /// ni de que coincidan submallas con materiales.
+    /// </summary>
+    private void ApplyPropVisual(GameObject prop)
     {
-        MeshFilter propMesh =
-            prop.GetComponentInChildren<MeshFilter>();
+        InitializeVisual();
 
-        MeshRenderer propRenderer =
-            prop.GetComponentInChildren<MeshRenderer>();
+        MeshFilter[] sourceFilters =
+            prop.GetComponentsInChildren<MeshFilter>();
 
-        if (propMesh == null ||
-            propRenderer == null)
+        // Armamos el contenedor nuevo primero. Si no hay nada
+        // utilizable, dejamos el aspecto actual sin tocar.
+        Transform newRoot =
+            new GameObject("DisguiseRoot").transform;
+
+        newRoot.SetParent(transform, false);
+
+        // Misma orientación horizontal y escala que el prop original.
+        newRoot.rotation =
+            Quaternion.Euler(0f, prop.transform.eulerAngles.y, 0f);
+
+        newRoot.localScale = prop.transform.lossyScale;
+
+        int pieces = 0;
+
+        foreach (MeshFilter mf in sourceFilters)
+        {
+            if (mf.sharedMesh == null)
+                continue;
+
+            MeshRenderer sourceRenderer =
+                mf.GetComponent<MeshRenderer>();
+
+            if (sourceRenderer == null || !sourceRenderer.enabled)
+                continue;
+
+            // Pose de la pieza relativa a la raíz del prop.
+            Matrix4x4 relative =
+                prop.transform.worldToLocalMatrix *
+                mf.transform.localToWorldMatrix;
+
+            GameObject piece = new GameObject(mf.name);
+
+            piece.transform.SetParent(newRoot, false);
+            piece.transform.localPosition = relative.GetPosition();
+            piece.transform.localRotation = relative.rotation;
+            piece.transform.localScale = relative.lossyScale;
+
+            piece.AddComponent<MeshFilter>().sharedMesh =
+                mf.sharedMesh;
+
+            piece.AddComponent<MeshRenderer>().sharedMaterials =
+                sourceRenderer.sharedMaterials;
+
+            pieces++;
+        }
+
+        if (pieces == 0)
         {
             Debug.LogWarning(
-                "[PropTransform] El objeto " +
-                prop.name +
-                " no tiene MeshFilter/MeshRenderer."
+                "[PropTransform] El objeto " + prop.name +
+                " no tiene MeshFilter/MeshRenderer activos " +
+                "en sus hijos."
             );
 
+            Destroy(newRoot.gameObject);
             return;
         }
 
-        if (visualMeshFilter == null ||
-            visualMeshRenderer == null)
+        // Centramos el disfraz sobre el jugador y apoyamos su base
+        // en el suelo. Se calcula con los bounds reales de los
+        // renderers, así funciona aunque la malla no sea legible
+        // y aunque el prop esté rotado.
+        Renderer[] renderers =
+            newRoot.GetComponentsInChildren<Renderer>();
+
+        Bounds bounds = renderers[0].bounds;
+
+        for (int i = 1; i < renderers.Length; i++)
+            bounds.Encapsulate(renderers[i].bounds);
+
+        Vector3 playerPosition = transform.position;
+
+        newRoot.position +=
+            new Vector3(
+                playerPosition.x - bounds.center.x,
+                playerPosition.y - bounds.min.y,
+                playerPosition.z - bounds.center.z
+            );
+
+        // Recién ahora reemplazamos el disfraz anterior.
+        if (disguiseRoot != null)
         {
-            InitializeVisual();
+            disguiseRoot.gameObject.SetActive(false);
+            Destroy(disguiseRoot.gameObject);
         }
 
-        // Copiamos la apariencia del prop.
-        visualMeshFilter.sharedMesh =
-            propMesh.sharedMesh;
+        disguiseRoot = newRoot;
 
-        visualMeshRenderer.sharedMaterials =
-            propRenderer.sharedMaterials;
+        // Ocultamos el cuerpo original (la cápsula).
+        if (bodyRenderer != null)
+            bodyRenderer.enabled = false;
 
-        Vector3 propScale =
-            prop.transform.lossyScale;
-
-        Bounds bounds =
-            propMesh.sharedMesh.bounds;
-
-        Vector3 scaledCenter =
-            Vector3.Scale(
-                bounds.center,
-                propScale
-            );
-
-        Vector3 scaledMin =
-            Vector3.Scale(
-                bounds.min,
-                propScale
-            );
-
-        // Centramos visualmente el objeto
-        // y hacemos que toque el suelo.
-        visualTarget.localPosition =
-            new Vector3(
-                -scaledCenter.x,
-                -scaledMin.y,
-                -scaledCenter.z
-            );
-
-        visualTarget.localScale =
-            propScale;
-
-        // Conservamos la orientación horizontal
-        // del prop.
-        visualTarget.localRotation =
-            Quaternion.Euler(
-                0f,
-                prop.transform.eulerAngles.y,
-                0f
-            );
-
-        currentProp =
-            prop;
-
+        currentProp = prop;
         isDisguised = true;
 
         Debug.Log(
             "[PropTransform] " +
             PhotonNetwork.NickName +
             " se transformó en " +
-            prop.name
+            prop.name +
+            " (" + pieces + " piezas)"
         );
     }
 
@@ -344,8 +328,7 @@ public class PropTransform : MonoBehaviourPun
 
     private void OnDrawGizmosSelected()
     {
-        Gizmos.color =
-            Color.yellow;
+        Gizmos.color = Color.yellow;
 
         Gizmos.DrawWireSphere(
             transform.position,
