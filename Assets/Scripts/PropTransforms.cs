@@ -16,6 +16,19 @@ public class PropTransform : MonoBehaviourPun
     [Header("Props")]
     [SerializeField] private string propTag = "Propable";
 
+    [Header("Cápsula de colisión (CharacterController)")]
+    [Tooltip("Altura máxima de la cápsula disfrazado. Ponela un poco menos que el espacio libre bajo las mesas.")]
+    [SerializeField] private float maxColliderHeight = 0.65f;
+    [Tooltip("Qué porcentaje de la huella del prop usa la cápsula como radio.")]
+    [SerializeField] private float footprintScale = 0.9f;
+    [SerializeField] private float minColliderRadius = 0.12f;
+
+    private CharacterController controller;
+    private float originalHeight;
+    private float originalRadius;
+    private float originalStepOffset;
+    private float originalBottom;
+
     private Renderer bodyRenderer;
 
     // Contenedor con copias visuales de todas las piezas del prop.
@@ -68,6 +81,58 @@ public class PropTransform : MonoBehaviourPun
 
         if (bodyRenderer == null)
             bodyRenderer = visualTarget.GetComponent<Renderer>();
+
+        if (controller == null)
+        {
+            controller = GetComponent<CharacterController>();
+
+            if (controller != null)
+            {
+                originalHeight = controller.height;
+                originalRadius = controller.radius;
+                originalStepOffset = controller.stepOffset;
+                originalBottom =
+                    controller.center.y - controller.height * 0.5f;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Ajusta la cápsula al tamaño del disfraz para que un objeto
+    /// chico (cartera, mochila) pueda pasar por debajo de una mesa.
+    /// Nunca la agranda por encima de la original.
+    /// </summary>
+    private void FitControllerToDisguise(Bounds bounds)
+    {
+        if (controller == null)
+            return;
+
+        float footprint =
+            (bounds.extents.x + bounds.extents.z) * 0.5f;
+
+        float radius =
+            Mathf.Clamp(
+                footprint * footprintScale,
+                minColliderRadius,
+                originalRadius
+            );
+
+        float height =
+            Mathf.Clamp(
+                Mathf.Min(bounds.size.y, maxColliderHeight),
+                radius * 2f,
+                originalHeight
+            );
+
+        controller.radius = radius;
+        controller.height = height;
+
+        // Mantiene la base de la cápsula a la misma altura que antes.
+        controller.center =
+            new Vector3(0f, originalBottom + height * 0.5f, 0f);
+
+        controller.stepOffset =
+            Mathf.Min(originalStepOffset, height * 0.5f);
     }
 
     // =========================================================
@@ -286,6 +351,8 @@ public class PropTransform : MonoBehaviourPun
 
         for (int i = 1; i < renderers.Length; i++)
             bounds.Encapsulate(renderers[i].bounds);
+
+        FitControllerToDisguise(bounds);
 
         Vector3 playerPosition = transform.position;
 
