@@ -8,7 +8,7 @@ public class LoginManager : MonoBehaviour
     public TMP_InputField campoMail;
     public TMP_InputField campoContrasena;
 
-    string url = "https://api-prop-tic-hunt.vercel.app/login";
+    string url = "https://api-prop-tic-hunt.vercel.app/auth/login";
 
     [System.Serializable]
     public class DatosLogin
