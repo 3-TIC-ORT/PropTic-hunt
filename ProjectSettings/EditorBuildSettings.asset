@@ -17,5 +17,14 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Game.unity
     guid: 7f7ba20b964de491b827312a4dc981c7
+  - enabled: 1
+    path: Assets/Scenes/RegistrateCrack.unity
+    guid: b5c68af3b952a40a982cfc09626f4732
+  - enabled: 1
+    path: Assets/Scenes/OlvidasteTuContra.unity
+    guid: 0a0e4f42d00ed4a718349426851f12c7
+  - enabled: 1
+    path: Assets/Scenes/LogIn.unity
+    guid: da856d3cd2a6b4506b75c04538528638
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
