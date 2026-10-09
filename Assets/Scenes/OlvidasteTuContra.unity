@@ -131,6 +131,7 @@ GameObject:
   - component: {fileID: 118110644}
   - component: {fileID: 118110643}
   - component: {fileID: 118110642}
+  - component: {fileID: 118110645}
   m_Layer: 5
   m_Name: Button
   m_TagString: Untagged
@@ -239,6 +240,23 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 118110640}
   m_CullTransparentMesh: 1
+--- !u!114 &118110645
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 118110640}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b363e9e4bd7445ec91c422d3d8facca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonHoverEffect
+  hoverScale: 1.08
+  animationSpeed: 8
+  targetImage: {fileID: 0}
+  normalColor: {r: 1, g: 1, b: 1, a: 0.85}
+  hoverColor: {r: 1, g: 0.85, b: 0.3, a: 1}
 --- !u!1 &279865311
 GameObject:
   m_ObjectHideFlags: 0
@@ -571,6 +589,7 @@ GameObject:
   - component: {fileID: 1050501768}
   - component: {fileID: 1050501767}
   - component: {fileID: 1050501766}
+  - component: {fileID: 1050501769}
   m_Layer: 5
   m_Name: EnviarEnlace
   m_TagString: Untagged
@@ -679,6 +698,23 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1050501764}
   m_CullTransparentMesh: 1
+--- !u!114 &1050501769
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1050501764}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b363e9e4bd7445ec91c422d3d8facca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonHoverEffect
+  hoverScale: 1.08
+  animationSpeed: 8
+  targetImage: {fileID: 0}
+  normalColor: {r: 1, g: 1, b: 1, a: 0.85}
+  hoverColor: {r: 1, g: 0.85, b: 0.3, a: 1}
 --- !u!1 &1395551729
 GameObject:
   m_ObjectHideFlags: 0
@@ -840,7 +876,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -34.5, y: 52.4}
+  m_AnchoredPosition: {x: -34.5, y: 49.8}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1430188766
@@ -1155,8 +1191,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 10.2, y: -3.2}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 11.200005, y: -1.5999943}
+  m_SizeDelta: {x: -2, y: -2}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1729929022
 MonoBehaviour:
@@ -1420,8 +1456,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 11.8, y: -2.7}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 11.2, y: -1.6}
+  m_SizeDelta: {x: -2, y: -2}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1892602780
 MonoBehaviour:
@@ -1472,8 +1508,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 2163997695
-  m_fontColor: {r: 1, g: 0.9858491, b: 0.9858491, a: 0.5}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
