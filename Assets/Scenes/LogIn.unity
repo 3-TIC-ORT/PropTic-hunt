@@ -1651,6 +1651,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LoginManager
   campoMail: {fileID: 398765527}
   campoContrasena: {fileID: 1852712330}
+  escenaSiguiente: Lobby
 --- !u!4 &1324754232
 Transform:
   m_ObjectHideFlags: 0

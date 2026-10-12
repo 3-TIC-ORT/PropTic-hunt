@@ -2,14 +2,17 @@ using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.SceneManagement;
 
 public class LoginManager : MonoBehaviour
 {
     public TMP_InputField campoMail;
     public TMP_InputField campoContrasena;
+    public string escenaSiguiente;
 
     string url = "https://api-prop-tic-hunt.vercel.app/auth/login";
 
+    // Lo que le mandamos a la API
     [System.Serializable]
     public class DatosLogin
     {
@@ -17,6 +20,7 @@ public class LoginManager : MonoBehaviour
         public string contrasena;
     }
 
+    // Lo que nos contesta la API
     [System.Serializable]
     public class Usuario
     {
@@ -32,6 +36,7 @@ public class LoginManager : MonoBehaviour
         public Usuario usuario;
     }
 
+    // Esta función la llama el botón
     public void IniciarLogin()
     {
         StartCoroutine(HacerLogin());
@@ -57,6 +62,7 @@ public class LoginManager : MonoBehaviour
             SesionUsuario.PuntosTotales = respuesta.usuario.puntos_totales;
 
             Debug.Log("Login correcto. Bienvenido " + SesionUsuario.Nombre);
+            SceneManager.LoadScene(escenaSiguiente);
         }
         else
         {
