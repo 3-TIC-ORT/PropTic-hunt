@@ -10,28 +10,38 @@ public class PropTransform : MonoBehaviourPun
     [SerializeField] private float detectionRange = 1.25f;
 
     [Header("Visual del jugador")]
-    [Tooltip("Objeto 'Body' del Player (la cápsula que se oculta al disfrazarse).")]
     [SerializeField] private Transform visualTarget;
 
     [Header("Props")]
     [SerializeField] private string propTag = "Propable";
 
-    [Header("Cápsula de colisión (CharacterController)")]
-    [Tooltip("Altura máxima de la cápsula disfrazado. Ponela un poco menos que el espacio libre bajo las mesas.")]
-    [SerializeField] private float maxColliderHeight = 0.65f;
-    [Tooltip("Qué porcentaje de la huella del prop usa la cápsula como radio.")]
-    [SerializeField] private float footprintScale = 0.9f;
-    [SerializeField] private float minColliderRadius = 0.12f;
+    [Header("Cápsula de colisión")]
+    [SerializeField] private float maxColliderHeight = 0.42f;
+
+    [SerializeField, Range(0.25f, 1f)]
+    private float footprintScale = 0.70f;
+
+    [Header("Props chicos")]
+    [SerializeField]
+    private Vector3 smallPropMaxDimensions =
+        new Vector3(1.25f, 1.25f, 1.25f);
+
+    [SerializeField, Range(0.25f, 1f)]
+    private float smallPropHeightScale = 0.65f;
+
+    [SerializeField]
+    private float smallPropMinRadius = 0.035f;
 
     private CharacterController controller;
+
     private float originalHeight;
     private float originalRadius;
     private float originalStepOffset;
     private float originalBottom;
+    private float originalSkinWidth;
+    private Vector3 originalCenter;
 
     private Renderer bodyRenderer;
-
-    // Contenedor con copias visuales de todas las piezas del prop.
     private Transform disguiseRoot;
 
     private GameObject currentTargetProp;
@@ -51,14 +61,12 @@ public class PropTransform : MonoBehaviourPun
 
     private void Update()
     {
-        // Solamente el dueño procesa input.
         if (!photonView.IsMine)
             return;
 
         if (!RoleManager.HasKiller)
             return;
 
-        // El Hunter no puede transformarse.
         if (GameManager.IsLocalAssassin())
             return;
 
@@ -91,48 +99,135 @@ public class PropTransform : MonoBehaviourPun
                 originalHeight = controller.height;
                 originalRadius = controller.radius;
                 originalStepOffset = controller.stepOffset;
+                originalCenter = controller.center;
+                originalSkinWidth = controller.skinWidth;
+
                 originalBottom =
-                    controller.center.y - controller.height * 0.5f;
+                    originalCenter.y - originalHeight * 0.5f;
             }
         }
     }
 
-    /// <summary>
-    /// Ajusta la cápsula al tamaño del disfraz para que un objeto
-    /// chico (cartera, mochila) pueda pasar por debajo de una mesa.
-    /// Nunca la agranda por encima de la original.
-    /// </summary>
+    // =========================================================
+    // AJUSTE DE COLISIONES
+    // =========================================================
+
     private void FitControllerToDisguise(Bounds bounds)
     {
         if (controller == null)
             return;
 
-        float footprint =
-            (bounds.extents.x + bounds.extents.z) * 0.5f;
+        Vector3 size = bounds.size;
+
+        bool isSmallProp =
+            size.x <= smallPropMaxDimensions.x &&
+            size.y <= smallPropMaxDimensions.y &&
+            size.z <= smallPropMaxDimensions.z;
+
+        if (!isSmallProp)
+        {
+            RestoreOriginalController();
+            return;
+        }
+
+        // Calculamos un radio reducido según el ancho del objeto.
+        float smallestHorizontalSide = Mathf.Min(size.x, size.z);
 
         float radius =
-            Mathf.Clamp(
-                footprint * footprintScale,
-                minColliderRadius,
-                originalRadius
-            );
+            smallestHorizontalSide * 0.5f * footprintScale;
 
-        float height =
-            Mathf.Clamp(
-                Mathf.Min(bounds.size.y, maxColliderHeight),
-                radius * 2f,
-                originalHeight
-            );
+        // Evitamos que el diámetro impida reducir la altura.
+        float maxAllowedRadius =
+            Mathf.Max(smallPropMinRadius, maxColliderHeight * 0.45f);
 
-        controller.radius = radius;
+        radius = Mathf.Clamp(
+            radius,
+            smallPropMinRadius,
+            Mathf.Min(originalRadius, maxAllowedRadius)
+        );
+
+        // Reducimos la altura de la colisión.
+        float height = Mathf.Min(
+            size.y * smallPropHeightScale,
+            maxColliderHeight,
+            originalHeight
+        );
+
+        // La altura de una cápsula debe ser al menos su diámetro.
+        height = Mathf.Max(height, radius * 2f);
+        height = Mathf.Min(height, originalHeight);
+
+        // Mantenemos la base de la cápsula a la altura original
+        // para evitar que el jugador quede flotando.
+        Vector3 center = new Vector3(
+            originalCenter.x,
+            originalBottom + height * 0.5f,
+            originalCenter.z
+        );
+
+        float stepOffset = Mathf.Min(
+            originalStepOffset,
+            Mathf.Max(0.01f, height * 0.2f)
+        );
+
+        float skinWidth = Mathf.Min(
+            originalSkinWidth,
+            Mathf.Max(0.005f, radius * 0.1f)
+        );
+
+        SetControllerDimensions(
+            height,
+            radius,
+            center,
+            stepOffset,
+            skinWidth
+        );
+
+        Debug.Log(
+            "[PropTransform] Colisión reducida. " +
+            "Objeto: " + currentTargetProp?.name +
+            " | Alto: " + height +
+            " | Radio: " + radius
+        );
+    }
+
+    private void SetControllerDimensions(
+        float height,
+        float radius,
+        Vector3 center,
+        float stepOffset,
+        float skinWidth)
+    {
+        if (controller == null)
+            return;
+
+        radius = Mathf.Max(0.01f, radius);
+        height = Mathf.Max(height, radius * 2f);
+
+        bool wasEnabled = controller.enabled;
+
+        // Desactivamos temporalmente el controlador para actualizar
+        // su forma de colisión sin conservar las dimensiones anteriores.
+        controller.enabled = false;
+
         controller.height = height;
+        controller.radius = radius;
+        controller.center = center;
+        controller.stepOffset = Mathf.Min(stepOffset, height);
+        controller.skinWidth = Mathf.Min(skinWidth, radius);
 
-        // Mantiene la base de la cápsula a la misma altura que antes.
-        controller.center =
-            new Vector3(0f, originalBottom + height * 0.5f, 0f);
+        controller.enabled = wasEnabled;
+    }
 
-        controller.stepOffset =
-            Mathf.Min(originalStepOffset, height * 0.5f);
+    private void RestoreOriginalController()
+    {
+        SetControllerDimensions(
+            originalHeight,
+            originalRadius,
+            originalCenter,
+            originalStepOffset,
+            originalSkinWidth
+        );
     }
 
     // =========================================================
@@ -143,13 +238,12 @@ public class PropTransform : MonoBehaviourPun
     {
         currentTargetProp = null;
 
-        Collider[] hits =
-            Physics.OverlapSphere(
-                transform.position,
-                detectionRange,
-                Physics.AllLayers,
-                QueryTriggerInteraction.Ignore
-            );
+        Collider[] hits = Physics.OverlapSphere(
+            transform.position,
+            detectionRange,
+            Physics.AllLayers,
+            QueryTriggerInteraction.Ignore
+        );
 
         float closestDistance = float.MaxValue;
 
@@ -157,18 +251,13 @@ public class PropTransform : MonoBehaviourPun
         {
             GameObject prop = FindPropObject(hit.transform);
 
-            if (prop == null)
+            if (prop == null || prop == currentProp)
                 continue;
 
-            // Si ya somos ese prop, no lo volvemos a seleccionar.
-            if (prop == currentProp)
-                continue;
-
-            float distance =
-                Vector3.Distance(
-                    transform.position,
-                    hit.ClosestPoint(transform.position)
-                );
+            float distance = Vector3.Distance(
+                transform.position,
+                hit.ClosestPoint(transform.position)
+            );
 
             if (distance < closestDistance)
             {
@@ -194,7 +283,7 @@ public class PropTransform : MonoBehaviourPun
     }
 
     // =========================================================
-    // TRANSFORMACIÓN (RED)
+    // TRANSFORMACIÓN Y RED
     // =========================================================
 
     private void TryTransform()
@@ -207,8 +296,7 @@ public class PropTransform : MonoBehaviourPun
         if (propIndex < 0)
         {
             Debug.LogWarning(
-                "[PropTransform] No se pudo encontrar " +
-                "el índice del prop."
+                "[PropTransform] No se pudo encontrar el índice del prop."
             );
 
             return;
@@ -253,8 +341,7 @@ public class PropTransform : MonoBehaviourPun
         if (propIndex < 0 || propIndex >= props.Length)
         {
             Debug.LogError(
-                "[PropTransform] Índice de prop inválido: " +
-                propIndex
+                "[PropTransform] Índice de prop inválido: " + propIndex
             );
 
             return;
@@ -267,13 +354,6 @@ public class PropTransform : MonoBehaviourPun
     // VISUAL DEL DISFRAZ
     // =========================================================
 
-    /// <summary>
-    /// En vez de fusionar todas las mallas en una sola (CombineMeshes),
-    /// copiamos cada pieza del prop (MeshFilter + MeshRenderer) como hija
-    /// de un contenedor. Así no dependemos de que las mallas de Blender
-    /// tengan "Read/Write" activado, ni del límite de 65.535 vértices,
-    /// ni de que coincidan submallas con materiales.
-    /// </summary>
     private void ApplyPropVisual(GameObject prop)
     {
         InitializeVisual();
@@ -281,16 +361,17 @@ public class PropTransform : MonoBehaviourPun
         MeshFilter[] sourceFilters =
             prop.GetComponentsInChildren<MeshFilter>();
 
-        // Armamos el contenedor nuevo primero. Si no hay nada
-        // utilizable, dejamos el aspecto actual sin tocar.
         Transform newRoot =
             new GameObject("DisguiseRoot").transform;
 
         newRoot.SetParent(transform, false);
 
-        // Misma orientación horizontal y escala que el prop original.
         newRoot.rotation =
-            Quaternion.Euler(0f, prop.transform.eulerAngles.y, 0f);
+            Quaternion.Euler(
+                0f,
+                prop.transform.eulerAngles.y,
+                0f
+            );
 
         newRoot.localScale = prop.transform.lossyScale;
 
@@ -307,7 +388,6 @@ public class PropTransform : MonoBehaviourPun
             if (sourceRenderer == null || !sourceRenderer.enabled)
                 continue;
 
-            // Pose de la pieza relativa a la raíz del prop.
             Matrix4x4 relative =
                 prop.transform.worldToLocalMatrix *
                 mf.transform.localToWorldMatrix;
@@ -332,18 +412,13 @@ public class PropTransform : MonoBehaviourPun
         {
             Debug.LogWarning(
                 "[PropTransform] El objeto " + prop.name +
-                " no tiene MeshFilter/MeshRenderer activos " +
-                "en sus hijos."
+                " no tiene mallas válidas."
             );
 
             Destroy(newRoot.gameObject);
             return;
         }
 
-        // Centramos el disfraz sobre el jugador y apoyamos su base
-        // en el suelo. Se calcula con los bounds reales de los
-        // renderers, así funciona aunque la malla no sea legible
-        // y aunque el prop esté rotado.
         Renderer[] renderers =
             newRoot.GetComponentsInChildren<Renderer>();
 
@@ -352,18 +427,17 @@ public class PropTransform : MonoBehaviourPun
         for (int i = 1; i < renderers.Length; i++)
             bounds.Encapsulate(renderers[i].bounds);
 
-        FitControllerToDisguise(bounds);
-
         Vector3 playerPosition = transform.position;
 
-        newRoot.position +=
-            new Vector3(
-                playerPosition.x - bounds.center.x,
-                playerPosition.y - bounds.min.y,
-                playerPosition.z - bounds.center.z
-            );
+        newRoot.position += new Vector3(
+            playerPosition.x - bounds.center.x,
+            playerPosition.y - bounds.min.y,
+            playerPosition.z - bounds.center.z
+        );
 
-        // Recién ahora reemplazamos el disfraz anterior.
+        // Actualizamos la colisión del jugador según el disfraz.
+        FitControllerToDisguise(bounds);
+
         if (disguiseRoot != null)
         {
             disguiseRoot.gameObject.SetActive(false);
@@ -372,11 +446,11 @@ public class PropTransform : MonoBehaviourPun
 
         disguiseRoot = newRoot;
 
-        // Ocultamos el cuerpo original (la cápsula).
         if (bodyRenderer != null)
             bodyRenderer.enabled = false;
 
         currentProp = prop;
+        currentTargetProp = null;
         isDisguised = true;
 
         Debug.Log(
