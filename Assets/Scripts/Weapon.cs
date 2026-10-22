@@ -43,33 +43,37 @@ public class Weapon : MonoBehaviourPun
     }
 
     private void Update()
+{
+    bool isArmed =
+        IsOwnerAssassin();
+
+    if (weaponVisual != null)
     {
-        bool isArmed =
-            IsOwnerAssassin();
-
-        if (weaponVisual != null)
-        {
-            weaponVisual.SetActive(isArmed);
-        }
-
-        // Solo el dueño controla el arma.
-        if (!photonView.IsMine)
-            return;
-
-        // Los escapistas no pueden disparar.
-        if (!isArmed)
-            return;
-
-        if (Mouse.current != null &&
-            Mouse.current.leftButton.wasPressedThisFrame &&
-            Time.time >= nextFireTime)
-        {
-            Shoot();
-
-            nextFireTime =
-                Time.time + fireRate;
-        }
+        weaponVisual.SetActive(isArmed);
     }
+
+    // Solo el dueño controla el arma.
+    if (!photonView.IsMine)
+        return;
+
+    // Los escapistas no pueden disparar.
+    if (!isArmed)
+        return;
+
+    // Con el panel de salida abierto no se dispara.
+    if (ConfirmarSalida.MenuAbierto)
+        return;
+
+    if (Mouse.current != null &&
+        Mouse.current.leftButton.wasPressedThisFrame &&
+        Time.time >= nextFireTime)
+    {
+        Shoot();
+
+        nextFireTime =
+            Time.time + fireRate;
+    }
+}
 
     private void Shoot()
     {

@@ -101,24 +101,32 @@ public class PlayerMovement : MonoBehaviourPun
     }
 
     private void Update()
+{
+    if (!photonView.IsMine)
+        return;
+
+    // Con el panel abierto: sin input, pero seguimos aplicando gravedad.
+    if (ConfirmarSalida.MenuAbierto)
     {
-        if (!photonView.IsMine)
-            return;
-
-        ReadInput();
-
-        if (isHunter)
-        {
-            HandleHunterLook();
-        }
-        else
-        {
-            HandleEscapistCamera();
-        }
+        cachedMoveInput = Vector2.zero;
+        isHoldingJump = false;
+        jumpBufferCounter = 0f;
 
         HandleJump();
         HandleMovement();
+        return;
     }
+
+    ReadInput();
+
+    if (isHunter)
+        HandleHunterLook();
+    else
+        HandleEscapistCamera();
+
+    HandleJump();
+    HandleMovement();
+}
 
     // =========================================================
     // ROL
