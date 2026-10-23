@@ -346,6 +346,8 @@ GameObject:
   - component: {fileID: 4355718995400613410}
   - component: {fileID: 4093360538554376458}
   - component: {fileID: 2159315544494762926}
+  - component: {fileID: 29398707777069864}
+  - component: {fileID: -7713558581430170058}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -527,12 +529,41 @@ MonoBehaviour:
   detectionRange: 1.25
   visualTarget: {fileID: 7557363613730023297}
   propTag: Propable
-  fitColliderToProp: 1
-  requireFreeSpace: 1
-  horizontalFit: 1
-  colliderPadding: 0.02
-  minColliderRadius: 0.1
-  minColliderHeight: 0.2
+  maxColliderHeight: 0.42
+  footprintScale: 0.7
+  smallPropMaxDimensions: {x: 1.25, y: 1.25, z: 1.25}
+  smallPropHeightScale: 0.65
+  smallPropMinRadius: 0.035
+  rotationSpeed: 120
+  rotationSyncInterval: 0.05
+--- !u!114 &29398707777069864
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4363353267580080555}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f443fdacd4317948827ca81f15f05af, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HabilidadCazador
+  tecla: 19
+  disparosProtegidos: 3
+  tiempoRecarga: 40
+--- !u!114 &-7713558581430170058
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4363353267580080555}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 85e9beccce2d18844b76780b42f662d9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VidaCazador
+  vidaMaxima: 40
 --- !u!1 &6366024219335910907
 GameObject:
   m_ObjectHideFlags: 0

@@ -36,6 +36,9 @@ public class PlayerHealth : MonoBehaviourPun
         IsDead = true;
         Debug.Log(gameObject.name + " fue eliminado.");
 
+        if (photonView.Owner != null)
+        FinDePartida.RegistrarCaptura(photonView.Owner.ActorNumber);
+        
         // Muerte simple por ahora: se desactiva para ambos clientes,
         // ya que este método corre a partir del mismo RPC en todos.
         gameObject.SetActive(false);
