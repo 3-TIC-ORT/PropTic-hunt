@@ -548,7 +548,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2f443fdacd4317948827ca81f15f05af, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HabilidadCazador
-  tecla: 19
+  tecla: 17
   disparosProtegidos: 3
   tiempoRecarga: 40
 --- !u!114 &-7713558581430170058

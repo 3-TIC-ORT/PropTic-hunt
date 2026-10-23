@@ -3,7 +3,37 @@ guid: 687a95eac1d9442a1841c3c332c2b0e0
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: FondoVentana
+    second: {fileID: 2100000, guid: d9edd394119284f88aa5f57409d4c4aa, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MarcoVentana
+    second: {fileID: 2100000, guid: dd03ac204a5a24a56a4b79b73ff11da1, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: ParedesBlancas
+    second: {fileID: 2100000, guid: 62d394d9a5edc4899a22aa06774a0dca, type: 2}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Textura abstracta de yeso azulado (1)
+    second: {fileID: 2800000, guid: 6f90adac1fbf24a328d86f1dbb3bf3b6, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Textura de yeso blanco suave (1)
+    second: {fileID: 2800000, guid: f69a920e88e38423d89843d6602610be, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: blue-glass-texture-background-free-photo
+    second: {fileID: 2800000, guid: c4a73bdfbdfbf486690b2439ee7d28ca, type: 3}
   materials:
     materialImportMode: 2
     materialName: 0
