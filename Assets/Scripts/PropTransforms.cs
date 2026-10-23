@@ -32,6 +32,13 @@ public class PropTransform : MonoBehaviourPun
     [SerializeField]
     private float smallPropMinRadius = 0.035f;
 
+    [Header("Rotación del prop (mantener R)")]
+    [Tooltip("Grados por segundo que gira el prop mientras se mantiene R.")]
+    [SerializeField] private float rotationSpeed = 120f;
+
+    [Tooltip("Cada cuántos segundos se envía el ángulo a los demás jugadores.")]
+    [SerializeField] private float rotationSyncInterval = 0.05f;
+
     private CharacterController controller;
 
     private float originalHeight;
@@ -49,6 +56,15 @@ public class PropTransform : MonoBehaviourPun
 
     private bool isDisguised;
 
+    // Rotación del disfraz con la tecla R.
+    // Punto del root (en coordenadas locales) sobre el que gira el prop.
+    private Vector3 disguisePivotLocal;
+    private float appliedYaw;
+    private float targetYaw;
+    private float lastSentYaw;
+    private float rotationSyncTimer;
+    private bool wasRotating;
+
     private void Awake()
     {
         InitializeVisual();
@@ -61,6 +77,10 @@ public class PropTransform : MonoBehaviourPun
 
     private void Update()
     {
+        // Todos los clientes aplican la rotación del disfraz
+        // (los remotos la reciben por red).
+        StepDisguiseRotation();
+
         if (!photonView.IsMine)
             return;
 
@@ -77,6 +97,8 @@ public class PropTransform : MonoBehaviourPun
         {
             TryTransform();
         }
+
+        HandleRotateInput();
     }
 
     private void InitializeVisual()
@@ -106,6 +128,114 @@ public class PropTransform : MonoBehaviourPun
                     originalCenter.y - originalHeight * 0.5f;
             }
         }
+    }
+
+    // =========================================================
+    // ROTACIÓN DEL DISFRAZ (TECLA R)
+    // =========================================================
+
+    // Solo el dueño: lee la tecla y acumula el ángulo objetivo.
+    private void HandleRotateInput()
+    {
+        if (!isDisguised || disguiseRoot == null)
+            return;
+
+        if (Keyboard.current == null)
+            return;
+
+        bool holding =
+            Keyboard.current.rKey.isPressed &&
+            !ConfirmarSalida.MenuAbierto;
+
+        if (holding)
+        {
+            targetYaw = Mathf.Repeat(
+                targetYaw + rotationSpeed * Time.deltaTime,
+                360f
+            );
+
+            rotationSyncTimer += Time.deltaTime;
+
+            if (rotationSyncTimer >= rotationSyncInterval)
+            {
+                rotationSyncTimer = 0f;
+                SendYawToOthers();
+            }
+
+            wasRotating = true;
+        }
+        else if (wasRotating)
+        {
+            // Al soltar R mandamos el ángulo final exacto.
+            wasRotating = false;
+            rotationSyncTimer = 0f;
+            SendYawToOthers();
+        }
+    }
+
+    private void SendYawToOthers()
+    {
+        if (Mathf.Approximately(lastSentYaw, targetYaw))
+            return;
+
+        lastSentYaw = targetYaw;
+
+        photonView.RPC(
+            nameof(RPC_SetDisguiseYaw),
+            RpcTarget.Others,
+            targetYaw
+        );
+    }
+
+    // Se envía el ángulo absoluto, no el incremento, para que
+    // todos los clientes terminen con la misma orientación.
+    [PunRPC]
+    private void RPC_SetDisguiseYaw(float yaw)
+    {
+        targetYaw = yaw;
+    }
+
+    // Acerca el ángulo aplicado al objetivo.
+    // El dueño lo aplica al instante; los remotos lo siguen
+    // a una velocidad parecida para que se vea continuo.
+    private void StepDisguiseRotation()
+    {
+        if (!isDisguised || disguiseRoot == null)
+            return;
+
+        float delta = Mathf.DeltaAngle(appliedYaw, targetYaw);
+
+        if (Mathf.Abs(delta) < 0.001f)
+            return;
+
+        float step = delta;
+
+        if (!photonView.IsMine)
+        {
+            float maxStep =
+                rotationSpeed * 1.25f * Time.deltaTime;
+
+            step = Mathf.Clamp(delta, -maxStep, maxStep);
+        }
+
+        appliedYaw = Mathf.Repeat(appliedYaw + step, 360f);
+
+        RotateDisguise(step);
+    }
+
+    // Gira el disfraz sobre un eje vertical que pasa por el
+    // centro de su malla, para que gire sobre sí mismo
+    // y no orbite alrededor de otro punto.
+    private void RotateDisguise(float degrees)
+    {
+        Vector3 pivot =
+            disguiseRoot.TransformPoint(disguisePivotLocal);
+
+        disguiseRoot.RotateAround(
+            pivot,
+            Vector3.up,
+            degrees
+        );
     }
 
     // =========================================================
@@ -422,21 +552,30 @@ public class PropTransform : MonoBehaviourPun
         Renderer[] renderers =
             newRoot.GetComponentsInChildren<Renderer>();
 
-        Bounds bounds = renderers[0].bounds;
-
-        for (int i = 1; i < renderers.Length; i++)
-            bounds.Encapsulate(renderers[i].bounds);
+        Bounds bounds = CalculateRendererBounds(renderers);
 
         Vector3 playerPosition = transform.position;
 
+        // Alineamos la base del objeto con la posición del jugador.
         newRoot.position += new Vector3(
             playerPosition.x - bounds.center.x,
             playerPosition.y - bounds.min.y,
             playerPosition.z - bounds.center.z
         );
 
-        // Actualizamos la colisión del jugador según el disfraz.
+        // Recalculamos los bounds después de mover la malla.
+        // Las dimensiones del controlador se calculan sobre el disfraz real.
+        bounds = CalculateRendererBounds(
+            newRoot.GetComponentsInChildren<Renderer>()
+        );
+
+        // La colisión de movimiento sigue pudiendo ser pequeña para
+        // permitir esconderse debajo de objetos grandes.
         FitControllerToDisguise(bounds);
+
+        // Esta hitbox independiente sigue la malla visible del disfraz.
+        // Es Trigger: detecta proyectiles, pero no bloquea el movimiento.
+        AddDisguiseHitbox(newRoot);
 
         if (disguiseRoot != null)
         {
@@ -453,6 +592,13 @@ public class PropTransform : MonoBehaviourPun
         currentTargetProp = null;
         isDisguised = true;
 
+        // Al transformarse en un prop nuevo se reinicia la rotación de R.
+        appliedYaw = 0f;
+        targetYaw = 0f;
+        lastSentYaw = 0f;
+        rotationSyncTimer = 0f;
+        wasRotating = false;
+
         Debug.Log(
             "[PropTransform] " +
             PhotonNetwork.NickName +
@@ -460,6 +606,119 @@ public class PropTransform : MonoBehaviourPun
             prop.name +
             " (" + pieces + " piezas)"
         );
+    }
+
+    // Calcula los bounds mundiales a partir de los renderers.
+    private Bounds CalculateRendererBounds(Renderer[] renderers)
+    {
+        if (renderers == null || renderers.Length == 0)
+            return new Bounds(transform.position, Vector3.one * 0.1f);
+
+        Bounds bounds = renderers[0].bounds;
+
+        for (int i = 1; i < renderers.Length; i++)
+        {
+            if (renderers[i] != null)
+                bounds.Encapsulate(renderers[i].bounds);
+        }
+
+        return bounds;
+    }
+
+    // Agrega una hitbox de disparo al disfraz, sin cambiar el collider
+    // pequeño que usa el CharacterController para moverse.
+    private void AddDisguiseHitbox(Transform root)
+    {
+        if (root == null)
+            return;
+
+        Bounds localBounds = CalculateLocalMeshBounds(root);
+
+        // Guardamos el centro de la malla como punto de giro (tecla R).
+        disguisePivotLocal = localBounds.center;
+
+        BoxCollider hitbox = root.gameObject.AddComponent<BoxCollider>();
+        hitbox.isTrigger = true;
+        hitbox.center = localBounds.center;
+
+        // Los meshes planos o muy finos necesitan un grosor mínimo para
+        // que el proyectil pueda detectarlos de forma fiable.
+        Vector3 scale = root.lossyScale;
+        float minX = 0.05f / Mathf.Max(0.0001f, Mathf.Abs(scale.x));
+        float minY = 0.05f / Mathf.Max(0.0001f, Mathf.Abs(scale.y));
+        float minZ = 0.05f / Mathf.Max(0.0001f, Mathf.Abs(scale.z));
+
+        hitbox.size = new Vector3(
+            Mathf.Max(localBounds.size.x, minX),
+            Mathf.Max(localBounds.size.y, minY),
+            Mathf.Max(localBounds.size.z, minZ)
+        );
+
+        Debug.Log(
+            "[PropTransform] Hitbox de disparo creada para el disfraz. " +
+            "Centro: " + hitbox.center + " | Tamaño: " + hitbox.size
+        );
+    }
+
+    // Calcula los límites de los meshes en coordenadas locales del root.
+    // Esto hace que el collider acompañe correctamente la rotación y escala
+    // del objeto transformado.
+    private Bounds CalculateLocalMeshBounds(Transform root)
+    {
+        MeshFilter[] filters = root.GetComponentsInChildren<MeshFilter>();
+
+        bool hasBounds = false;
+        Bounds localBounds = new Bounds(Vector3.zero, Vector3.one * 0.1f);
+
+        foreach (MeshFilter filter in filters)
+        {
+            if (filter == null || filter.sharedMesh == null)
+                continue;
+
+            Bounds meshBounds = filter.sharedMesh.bounds;
+            Vector3 min = meshBounds.min;
+            Vector3 max = meshBounds.max;
+
+            for (int x = 0; x < 2; x++)
+            {
+                for (int y = 0; y < 2; y++)
+                {
+                    for (int z = 0; z < 2; z++)
+                    {
+                        Vector3 meshCorner = new Vector3(
+                            x == 0 ? min.x : max.x,
+                            y == 0 ? min.y : max.y,
+                            z == 0 ? min.z : max.z
+                        );
+
+                        Vector3 worldCorner =
+                            filter.transform.TransformPoint(meshCorner);
+
+                        Vector3 rootLocalCorner =
+                            root.InverseTransformPoint(worldCorner);
+
+                        if (!hasBounds)
+                        {
+                            localBounds = new Bounds(
+                                rootLocalCorner,
+                                Vector3.zero
+                            );
+
+                            hasBounds = true;
+                        }
+                        else
+                        {
+                            localBounds.Encapsulate(rootLocalCorner);
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!hasBounds)
+            return new Bounds(Vector3.zero, Vector3.one * 0.1f);
+
+        return localBounds;
     }
 
     public bool IsDisguised()

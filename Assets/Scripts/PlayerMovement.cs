@@ -39,6 +39,16 @@ public class PlayerMovement : MonoBehaviourPun
     [Tooltip("Suavidad al cambiar la distancia de cámara.")]
     [SerializeField] private float cameraDistanceSmooth = 5f;
 
+    [Header("Colisión de cámara (escapista)")]
+    [SerializeField] private LayerMask cameraCollisionMask = ~0;
+    [SerializeField] private float cameraCollisionRadius = 0.25f;
+    [SerializeField] private float cameraCollisionMargin = 0.1f;
+    [SerializeField] private float minCollisionDistance = 0.3f;
+    [SerializeField] private float minPivotHeight = 0.3f;
+
+    [Tooltip("Altura del pivote = altura del prop x este factor (máx. thirdPersonHeight).")]
+    [SerializeField] private float heightOverProp = 1.2f;
+
     [Header("Sensibilidad de cámara")]
     [SerializeField] private float mouseSensitivity = 0.1f;
 
@@ -78,6 +88,9 @@ public class PlayerMovement : MonoBehaviourPun
     // Se usa para hacer el movimiento más suave.
     private Vector3 currentHorizontalVelocity;
 
+    // Buffer reutilizable para el SphereCast de la cámara.
+    private readonly RaycastHit[] cameraHits = new RaycastHit[16];
+
     private void Awake()
     {
         controller = GetComponent<CharacterController>();
@@ -101,32 +114,37 @@ public class PlayerMovement : MonoBehaviourPun
     }
 
     private void Update()
-{
-    if (!photonView.IsMine)
-        return;
-
-    // Con el panel abierto: sin input, pero seguimos aplicando gravedad.
-    if (ConfirmarSalida.MenuAbierto)
     {
-        cachedMoveInput = Vector2.zero;
-        isHoldingJump = false;
-        jumpBufferCounter = 0f;
+        if (!photonView.IsMine)
+            return;
+
+        // Con el panel de salida abierto: sin input,
+        // pero seguimos aplicando gravedad.
+        if (ConfirmarSalida.MenuAbierto)
+        {
+            cachedMoveInput = Vector2.zero;
+            isHoldingJump = false;
+            jumpBufferCounter = 0f;
+
+            HandleJump();
+            HandleMovement();
+            return;
+        }
+
+        ReadInput();
+
+        if (isHunter)
+        {
+            HandleHunterLook();
+        }
+        else
+        {
+            HandleEscapistCamera();
+        }
 
         HandleJump();
         HandleMovement();
-        return;
     }
-
-    ReadInput();
-
-    if (isHunter)
-        HandleHunterLook();
-    else
-        HandleEscapistCamera();
-
-    HandleJump();
-    HandleMovement();
-}
 
     // =========================================================
     // ROL
@@ -177,8 +195,7 @@ public class PlayerMovement : MonoBehaviourPun
         // IMPORTANTE: la base del CharacterController está en
         // localPosition.y = 0 (los "pies" del personaje). Si dejamos
         // la cámara en Vector3.zero, queda pegada al piso y el
-        // near clip plane corta el suelo, dando la sensación de
-        // que el asesino "atraviesa" el piso. Por eso la subimos
+        // near clip plane corta el suelo. Por eso la subimos
         // a la altura de los ojos.
         cameraHolder.localPosition = new Vector3(0f, hunterEyeHeight, 0f);
         cameraHolder.localRotation = Quaternion.identity;
@@ -233,129 +250,154 @@ public class PlayerMovement : MonoBehaviourPun
         UpdateEscapistCameraPosition(false);
     }
 
-    private void UpdateEscapistCameraPosition(bool instant)
+    /// <summary>
+    /// Calcula los límites combinados de todos los renderers
+    /// visibles del jugador (cuerpo o prop actual).
+    /// </summary>
+    private bool TryGetBodyBounds(out Bounds bounds)
     {
-        float targetDistance =
-            CalculateCameraDistance();
+        bounds = new Bounds(transform.position, Vector3.zero);
+        bool found = false;
 
-        if (instant)
+        foreach (Renderer r in GetComponentsInChildren<Renderer>())
         {
-            currentCameraDistance = targetDistance;
-        }
-        else
-        {
-            currentCameraDistance =
-                Mathf.Lerp(
-                    currentCameraDistance,
-                    targetDistance,
-                    cameraDistanceSmooth *
-                    Time.deltaTime
-                );
-        }
-
-        cameraHolder.localPosition =
-            new Vector3(
-                0f,
-                thirdPersonHeight,
-                -currentCameraDistance
-            );
-
-        // IMPORTANTE:
-        // Ahora usamos la rotación vertical actual
-        // y NO forzamos siempre thirdPersonAngle.
-        cameraHolder.localRotation =
-            Quaternion.Euler(
-                verticalRotation,
-                0f,
-                0f
-            );
-
-        if (playerCamera != null)
-        {
-            playerCamera.transform.localPosition =
-                Vector3.zero;
-
-            playerCamera.transform.localRotation =
-                Quaternion.identity;
-        }
-    }
-
-    // =========================================================
-    // DISTANCIA DE CÁMARA
-    // =========================================================
-
-    private float CalculateCameraDistance()
-    {
-        float targetDistance = thirdPersonDistance;
-
-        Renderer[] renderers =
-            GetComponentsInChildren<Renderer>();
-
-        if (renderers == null || renderers.Length == 0)
-        {
-            return targetDistance;
-        }
-
-        Bounds combinedBounds =
-            new Bounds(
-                transform.position,
-                Vector3.zero
-            );
-
-        bool foundRenderer = false;
-
-        foreach (Renderer renderer in renderers)
-        {
-            if (renderer == null)
+            if (r == null || !r.enabled)
                 continue;
 
-            if (!renderer.enabled)
+            if (r.GetComponent<Camera>() != null)
                 continue;
 
-            if (renderer.GetComponent<Camera>() != null)
-                continue;
-
-            if (!foundRenderer)
+            if (!found)
             {
-                combinedBounds = renderer.bounds;
-                foundRenderer = true;
+                bounds = r.bounds;
+                found = true;
             }
             else
             {
-                combinedBounds.Encapsulate(
-                    renderer.bounds
-                );
+                bounds.Encapsulate(r.bounds);
             }
         }
 
-        if (!foundRenderer)
-            return targetDistance;
+        return found;
+    }
 
-        float largestExtent =
-            Mathf.Max(
-                combinedBounds.extents.x,
-                combinedBounds.extents.y,
-                combinedBounds.extents.z
+    private void UpdateEscapistCameraPosition(bool instant)
+    {
+        float pivotHeight = thirdPersonHeight;
+        float desiredDistance = thirdPersonDistance;
+        float radius = cameraCollisionRadius;
+
+        if (TryGetBodyBounds(out Bounds bounds))
+        {
+            // Altura del prop medida desde los pies.
+            float top = bounds.max.y - transform.position.y;
+
+            // Prop chico -> pivote bajo.
+            // Jugador normal -> sin cambios.
+            pivotHeight = Mathf.Clamp(
+                top * heightOverProp,
+                minPivotHeight,
+                thirdPersonHeight
             );
 
-        float requiredDistance =
-            largestExtent *
-            propCameraPadding;
-
-        targetDistance =
-            Mathf.Max(
-                thirdPersonDistance,
-                requiredDistance
+            // Prop grande -> cámara más lejos.
+            float largestExtent = Mathf.Max(
+                bounds.extents.x,
+                bounds.extents.y,
+                bounds.extents.z
             );
 
-        targetDistance =
-            Mathf.Clamp(
-                targetDistance,
+            desiredDistance = Mathf.Clamp(
+                Mathf.Max(
+                    thirdPersonDistance,
+                    largestExtent * propCameraPadding
+                ),
                 minimumCameraDistance,
                 maximumCameraDistance
             );
 
-        return targetDistance;
+            // Esfera más fina para props chicos
+            // (si no, no entran bajo una mesa).
+            radius = Mathf.Min(
+                cameraCollisionRadius,
+                Mathf.Max(0.05f, top * 0.25f)
+            );
+        }
+
+        // ---------------------------------------------------
+        // Colisión de cámara
+        // ---------------------------------------------------
+
+        Vector3 origin =
+            transform.position +
+            Vector3.up * pivotHeight;
+
+        Vector3 direction = -transform.forward;
+
+        float allowedDistance = desiredDistance;
+
+        int hitCount = Physics.SphereCastNonAlloc(
+            origin,
+            radius,
+            direction,
+            cameraHits,
+            desiredDistance,
+            cameraCollisionMask,
+            QueryTriggerInteraction.Ignore
+        );
+
+        for (int i = 0; i < hitCount; i++)
+        {
+            RaycastHit hit = cameraHits[i];
+
+            // Ignorar los colliders del propio jugador.
+            if (hit.collider.transform.IsChildOf(transform))
+                continue;
+
+            allowedDistance = Mathf.Min(
+                allowedDistance,
+                Mathf.Max(0f, hit.distance - cameraCollisionMargin)
+            );
+        }
+
+        allowedDistance = Mathf.Clamp(
+            allowedDistance,
+            minCollisionDistance,
+            desiredDistance
+        );
+
+        // Se acerca de golpe (evita ver a través de la pared)
+        // y se aleja suavemente.
+        if (instant || allowedDistance < currentCameraDistance)
+        {
+            currentCameraDistance = allowedDistance;
+        }
+        else
+        {
+            currentCameraDistance = Mathf.Lerp(
+                currentCameraDistance,
+                allowedDistance,
+                cameraDistanceSmooth * Time.deltaTime
+            );
+        }
+
+        cameraHolder.localPosition = new Vector3(
+            0f,
+            pivotHeight,
+            -currentCameraDistance
+        );
+
+        cameraHolder.localRotation = Quaternion.Euler(
+            verticalRotation,
+            0f,
+            0f
+        );
+
+        if (playerCamera != null)
+        {
+            playerCamera.transform.localPosition = Vector3.zero;
+            playerCamera.transform.localRotation = Quaternion.identity;
+        }
     }
 
     // =========================================================

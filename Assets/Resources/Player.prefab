@@ -459,6 +459,14 @@ MonoBehaviour:
   propCameraPadding: 1.25
   hunterEyeHeight: 1.8
   cameraDistanceSmooth: 5
+  cameraCollisionMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  cameraCollisionRadius: 0.25
+  cameraCollisionMargin: 0.1
+  minCollisionDistance: 0.3
+  minPivotHeight: 0.3
+  heightOverProp: 1.2
   mouseSensitivity: 0.5
   hunterMinVerticalAngle: -80
   hunterMaxVerticalAngle: 80
@@ -490,7 +498,7 @@ MonoBehaviour:
   hitboxBulletPrefab: {fileID: 6136459431565994116, guid: 1aeb9452e6176478da84cb9c212986db, type: 3}
   range: 100
   fireRate: 1
-  bulletSpeed: 40
+  bulletSpeed: 60
 --- !u!114 &4093360538554376458
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -519,6 +527,12 @@ MonoBehaviour:
   detectionRange: 1.25
   visualTarget: {fileID: 7557363613730023297}
   propTag: Propable
+  fitColliderToProp: 1
+  requireFreeSpace: 1
+  horizontalFit: 1
+  colliderPadding: 0.02
+  minColliderRadius: 0.1
+  minColliderHeight: 0.2
 --- !u!1 &6366024219335910907
 GameObject:
   m_ObjectHideFlags: 0
