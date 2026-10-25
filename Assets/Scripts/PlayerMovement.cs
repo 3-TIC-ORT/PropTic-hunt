@@ -120,7 +120,7 @@ public class PlayerMovement : MonoBehaviourPun
 
         // Con el panel de salida abierto: sin input,
         // pero seguimos aplicando gravedad.
-        if (ConfirmarSalida.MenuAbierto)
+        if (ConfirmarSalida.MenuAbierto || FinDePartida.Terminada)
         {
             cachedMoveInput = Vector2.zero;
             isHoldingJump = false;

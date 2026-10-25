@@ -348,6 +348,7 @@ GameObject:
   - component: {fileID: 2159315544494762926}
   - component: {fileID: 29398707777069864}
   - component: {fileID: -7713558581430170058}
+  - component: {fileID: 6083430179655187017}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -564,6 +565,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VidaCazador
   vidaMaxima: 40
+--- !u!114 &6083430179655187017
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4363353267580080555}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee60bd0f086533641a2fa9a18e17093c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SilbidoProp
+  tecla: 20
+  tiempoEspera: 5
+  sonido: {fileID: 8300000, guid: a734a8e2c778502428ef375fbea10532, type: 3}
+  permitirAlCazadorEnPruebas: 0
 --- !u!1 &6366024219335910907
 GameObject:
   m_ObjectHideFlags: 0
