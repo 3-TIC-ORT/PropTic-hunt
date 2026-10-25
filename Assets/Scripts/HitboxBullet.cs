@@ -19,6 +19,16 @@ public class HitboxBullet : MonoBehaviour
     private Vector3 startPosition;
     private bool initialized;
     private bool hasHit;
+    private bool resultadoRegistrado;
+
+    private void RegistrarResultado(bool acerto)
+    {
+        if (resultadoRegistrado) return;
+        resultadoRegistrado = true;
+
+        if (VidaCazador.Local != null)
+            VidaCazador.Local.RegistrarDisparo(acerto);
+    }
 
     public void Initialize(
         Vector3 shootDirection,
@@ -56,6 +66,7 @@ public class HitboxBullet : MonoBehaviour
 
         if (remainingDistance <= 0f)
         {
+            RegistrarResultado(false);
             Destroy(gameObject);
             return;
         }
@@ -112,7 +123,7 @@ public class HitboxBullet : MonoBehaviour
                 targetView.Owner != null)
             {
                 hasHit = true;
-
+                RegistrarResultado(true);
                 // Conservamos la lógica de daño por RPC que ya usa el proyecto.
                 targetView.RPC(
                     nameof(PlayerHealth.RPC_TakeDamage),
@@ -131,6 +142,7 @@ public class HitboxBullet : MonoBehaviour
             // Una pared, un mueble u otro collider bloquea el proyectil.
             // Así el disparo no atraviesa objetos sólidos.
             hasHit = true;
+            RegistrarResultado(false);
             Destroy(gameObject);
             return;
         }
@@ -138,6 +150,9 @@ public class HitboxBullet : MonoBehaviour
         transform.position += direction * stepDistance;
 
         if (stepDistance >= remainingDistance)
+        {
+            RegistrarResultado(false);
             Destroy(gameObject);
+        }
     }
 }

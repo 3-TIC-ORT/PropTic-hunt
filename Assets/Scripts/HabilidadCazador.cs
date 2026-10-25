@@ -13,6 +13,8 @@ public class HabilidadCazador : MonoBehaviourPun
 
     public bool Activa => disparosRestantes > 0;
     public bool Lista => !Activa && Time.time >= recargaHasta;
+    public int DisparosRestantes => disparosRestantes;
+    public float SegundosRecarga => Mathf.Max(0f, recargaHasta - Time.time);
 
     private void Update()
     {
