@@ -3,6 +3,7 @@ using ExitGames.Client.Photon;
 using Photon.Pun;
 using Photon.Realtime;
 using TMPro;
+using UnityEngine.UI;
 using UnityEngine;
 
 public class FinDePartida : MonoBehaviour, IOnEventCallback
@@ -16,6 +17,10 @@ public class FinDePartida : MonoBehaviour, IOnEventCallback
     public static string ResultadoLocal { get; private set; } = "";
 
     public TMP_Text textoResultado;
+    public GameObject panelResultado;
+    public Image fondoResultado;
+    public Color colorGane = new Color(0.12f, 0.55f, 0.25f, 0.92f);
+    public Color colorPerdi = new Color(0.7f, 0.12f, 0.12f, 0.92f);
     public float duracionPartida = 300f;
 
     private readonly HashSet<int> capturados = new HashSet<int>();
@@ -27,7 +32,7 @@ public class FinDePartida : MonoBehaviour, IOnEventCallback
         Instancia = this;
         Terminada = false;
         ResultadoLocal = "";
-        if (textoResultado != null) textoResultado.gameObject.SetActive(false);
+        if (panelResultado != null) panelResultado.SetActive(false);
     }
 
     private void OnEnable()
@@ -125,10 +130,17 @@ public class FinDePartida : MonoBehaviour, IOnEventCallback
         Debug.Log("[Fin] Motivo: " + motivo + " | Resultado: " + ResultadoLocal);
 
         if (textoResultado != null)
-        {
             textoResultado.text = gane ? "¡GANASTE!" : "PERDISTE";
-            textoResultado.gameObject.SetActive(true);
-        }
+
+        if (fondoResultado != null)
+            fondoResultado.color = gane ? colorGane : colorPerdi;
+
+        if (panelResultado != null)
+            panelResultado.SetActive(true);
+
+        // Libera el mouse para poder apretar el botón
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 
     [ContextMenu("Probar: todos capturados")]

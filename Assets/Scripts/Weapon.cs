@@ -64,6 +64,9 @@ public class Weapon : MonoBehaviourPun
     if (ConfirmarSalida.MenuAbierto)
         return;
 
+    if (FinDePartida.Terminada)
+        return;
+
     if (Mouse.current != null &&
         Mouse.current.leftButton.wasPressedThisFrame &&
         Time.time >= nextFireTime)
