@@ -190,11 +190,12 @@ public class Weapon : MonoBehaviourPun
             return;
 
         GameObject bullet =
-            Instantiate(
-                bulletVisualPrefab,
-                startPosition,
-                Quaternion.LookRotation(direction)
-            );
+    Instantiate(
+        bulletVisualPrefab,
+        startPosition,
+        Quaternion.LookRotation(direction) *
+        Quaternion.Euler(90f, 0f, 0f)
+    );
 
         StartCoroutine(
             MoveVisualBullet(

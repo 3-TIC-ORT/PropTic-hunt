@@ -71,6 +71,9 @@ public class PlayerMovement : MonoBehaviourPun
 
     private CharacterController controller;
 
+    // Se usa para saber si el prop está quieto (tecla Q).
+    private PropTransform propTransform;
+
     private float verticalRotation;
     private Vector3 velocity;
 
@@ -94,6 +97,7 @@ public class PlayerMovement : MonoBehaviourPun
     private void Awake()
     {
         controller = GetComponent<CharacterController>();
+        propTransform = GetComponent<PropTransform>();
     }
 
     private void Start()
@@ -132,6 +136,16 @@ public class PlayerMovement : MonoBehaviourPun
         }
 
         ReadInput();
+
+        // Prop quieto (tecla Q): sin movimiento ni salto.
+        // La cámara sigue pudiendo girar.
+        if (propTransform != null && propTransform.IsFrozen)
+        {
+            cachedMoveInput = Vector2.zero;
+            isHoldingJump = false;
+            jumpBufferCounter = 0f;
+            currentHorizontalVelocity = Vector3.zero;
+        }
 
         if (isHunter)
         {
@@ -238,6 +252,8 @@ public class PlayerMovement : MonoBehaviourPun
             lookInput.x * mouseSensitivity;
 
         // Rotación horizontal del jugador (a los lados).
+        // Con el prop quieto, PropTransform deja el disfraz fijo
+        // en el mundo, así que solo se mueve la cámara.
         transform.Rotate(
             Vector3.up * mouseX
         );

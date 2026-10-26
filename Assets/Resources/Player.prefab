@@ -497,7 +497,7 @@ MonoBehaviour:
   cameraTransform: {fileID: 1631439276020059449}
   muzzlePoint: {fileID: 5836991825591527065}
   hitboxOrigin: {fileID: 5515837212952475344}
-  bulletVisualPrefab: {fileID: 142849291906749135, guid: a1cf2982421b1465ab8c9166ca8fe45a, type: 3}
+  bulletVisualPrefab: {fileID: 2515080537796893670, guid: 43f72d4ea74ec434fa5eda50b3dd50a9, type: 3}
   hitboxBulletPrefab: {fileID: 6136459431565994116, guid: 1aeb9452e6176478da84cb9c212986db, type: 3}
   range: 100
   fireRate: 1
@@ -535,6 +535,7 @@ MonoBehaviour:
   smallPropMaxDimensions: {x: 1.25, y: 1.25, z: 1.25}
   smallPropHeightScale: 0.65
   smallPropMinRadius: 0.035
+  freezeEnabled: 1
   rotationSpeed: 120
   rotationSyncInterval: 0.05
 --- !u!114 &29398707777069864

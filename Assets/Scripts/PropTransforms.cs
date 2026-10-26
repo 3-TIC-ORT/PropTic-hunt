@@ -32,7 +32,11 @@ public class PropTransform : MonoBehaviourPun
     [SerializeField]
     private float smallPropMinRadius = 0.035f;
 
-    [Header("Rotación del prop (mantener R)")]
+    [Header("Quedarse quieto (tecla Q)")]
+    [Tooltip("Con Q el prop queda completamente quieto: no se mueve y no gira con la cámara. Solo así se puede rotar con R.")]
+    [SerializeField] private bool freezeEnabled = true;
+
+    [Header("Rotación del prop (mantener R, solo quieto)")]
     [Tooltip("Grados por segundo que gira el prop mientras se mantiene R.")]
     [SerializeField] private float rotationSpeed = 120f;
 
@@ -56,7 +60,19 @@ public class PropTransform : MonoBehaviourPun
 
     private bool isDisguised;
 
-    // Rotación del disfraz con la tecla R.
+    // ---------------------------------------------------------
+    // Estado "quieto" (tecla Q)
+    // ---------------------------------------------------------
+
+    // Mientras está quieto, el disfraz NO sigue al jugador cuando la
+    // cámara lo hace girar. Guardamos su pose en el mundo:
+    //  - frozenOffset: desplazamiento (mundo) desde la posición del jugador.
+    //  - frozenRotation: rotación (mundo) del disfraz.
+    private bool isFrozen;
+    private Vector3 frozenOffset;
+    private Quaternion frozenRotation = Quaternion.identity;
+
+    // Rotación del disfraz con la tecla R (solo estando quieto).
     // Punto del root (en coordenadas locales) sobre el que gira el prop.
     private Vector3 disguisePivotLocal;
     private float appliedYaw;
@@ -64,6 +80,12 @@ public class PropTransform : MonoBehaviourPun
     private float lastSentYaw;
     private float rotationSyncTimer;
     private bool wasRotating;
+
+    /// <summary>
+    /// True mientras el prop está quieto (Q). PlayerMovement lo usa
+    /// para bloquear el movimiento y el salto.
+    /// </summary>
+    public bool IsFrozen => isFrozen;
 
     private void Awake()
     {
@@ -98,7 +120,17 @@ public class PropTransform : MonoBehaviourPun
             TryTransform();
         }
 
+        HandleFreezeInput();
         HandleRotateInput();
+    }
+
+    // El jugador gira con la cámara en Update (PlayerMovement), así que
+    // la pose del disfraz se fija al final del frame para que quede
+    // exactamente donde estaba, sin importar cuánto giró el jugador.
+    private void LateUpdate()
+    {
+        if (isFrozen)
+            ApplyFrozenPose();
     }
 
     private void InitializeVisual()
@@ -131,7 +163,118 @@ public class PropTransform : MonoBehaviourPun
     }
 
     // =========================================================
-    // ROTACIÓN DEL DISFRAZ (TECLA R)
+    // QUEDARSE QUIETO (TECLA Q)
+    // =========================================================
+
+    // Solo el dueño: Q alterna entre quieto / libre.
+    private void HandleFreezeInput()
+    {
+        if (!freezeEnabled || !isDisguised || disguiseRoot == null)
+            return;
+
+        if (Keyboard.current == null)
+            return;
+
+        if (ConfirmarSalida.MenuAbierto || FinDePartida.Terminada)
+            return;
+
+        if (!Keyboard.current.qKey.wasPressedThisFrame)
+            return;
+
+        if (isFrozen)
+        {
+            // Aseguramos que los demás reciban el ángulo final
+            // antes de soltar al prop.
+            wasRotating = false;
+            rotationSyncTimer = 0f;
+            SendYawToOthers();
+
+            photonView.RPC(
+                nameof(RPC_SetFrozen),
+                RpcTarget.All,
+                false,
+                Vector3.zero,
+                Quaternion.identity
+            );
+        }
+        else
+        {
+            // Se envía la pose exacta del dueño para que todos
+            // congelen el disfraz en el mismo lugar y ángulo.
+            photonView.RPC(
+                nameof(RPC_SetFrozen),
+                RpcTarget.All,
+                true,
+                disguiseRoot.position - transform.position,
+                disguiseRoot.rotation
+            );
+        }
+    }
+
+    [PunRPC]
+    private void RPC_SetFrozen(
+        bool frozen,
+        Vector3 offset,
+        Quaternion rotation)
+    {
+        if (!isDisguised || disguiseRoot == null)
+            return;
+
+        if (frozen)
+        {
+            frozenOffset = offset;
+            frozenRotation = rotation;
+
+            // El ángulo de R es relativo a la pose congelada.
+            appliedYaw = 0f;
+            targetYaw = 0f;
+            lastSentYaw = 0f;
+            rotationSyncTimer = 0f;
+            wasRotating = false;
+
+            isFrozen = true;
+            ApplyFrozenPose();
+        }
+        else
+        {
+            if (isFrozen)
+            {
+                // Terminamos de aplicar lo que faltaba girar y dejamos
+                // el disfraz en su pose final antes de soltarlo.
+                float remaining =
+                    Mathf.DeltaAngle(appliedYaw, targetYaw);
+
+                if (Mathf.Abs(remaining) > 0.001f)
+                {
+                    appliedYaw =
+                        Mathf.Repeat(appliedYaw + remaining, 360f);
+
+                    RotateFrozenPose(remaining);
+                }
+
+                ApplyFrozenPose();
+            }
+
+            // Desde acá el disfraz vuelve a ser hijo "normal"
+            // y gira con el jugador.
+            isFrozen = false;
+            wasRotating = false;
+        }
+    }
+
+    private void ApplyFrozenPose()
+    {
+        if (disguiseRoot == null)
+            return;
+
+        disguiseRoot.SetPositionAndRotation(
+            transform.position + frozenOffset,
+            frozenRotation
+        );
+    }
+
+    // =========================================================
+    // ROTACIÓN DEL DISFRAZ (TECLA R, SOLO QUIETO)
     // =========================================================
 
     // Solo el dueño: lee la tecla y acumula el ángulo objetivo.
@@ -139,6 +282,13 @@ public class PropTransform : MonoBehaviourPun
     {
         if (!isDisguised || disguiseRoot == null)
             return;
+
+        // Solo se puede rotar con el prop quieto.
+        if (!isFrozen)
+        {
+            wasRotating = false;
+            return;
+        }
 
         if (Keyboard.current == null)
             return;
@@ -187,8 +337,8 @@ public class PropTransform : MonoBehaviourPun
         );
     }
 
-    // Se envía el ángulo absoluto, no el incremento, para que
-    // todos los clientes terminen con la misma orientación.
+    // Se envía el ángulo absoluto (relativo a la pose congelada), no el
+    // incremento, para que todos terminen con la misma orientación.
     [PunRPC]
     private void RPC_SetDisguiseYaw(float yaw)
     {
@@ -200,7 +350,7 @@ public class PropTransform : MonoBehaviourPun
     // a una velocidad parecida para que se vea continuo.
     private void StepDisguiseRotation()
     {
-        if (!isDisguised || disguiseRoot == null)
+        if (!isDisguised || disguiseRoot == null || !isFrozen)
             return;
 
         float delta = Mathf.DeltaAngle(appliedYaw, targetYaw);
@@ -220,22 +370,30 @@ public class PropTransform : MonoBehaviourPun
 
         appliedYaw = Mathf.Repeat(appliedYaw + step, 360f);
 
-        RotateDisguise(step);
+        RotateFrozenPose(step);
     }
 
-    // Gira el disfraz sobre un eje vertical que pasa por el
+    // Gira la pose congelada sobre un eje vertical que pasa por el
     // centro de su malla, para que gire sobre sí mismo
     // y no orbite alrededor de otro punto.
-    private void RotateDisguise(float degrees)
+    private void RotateFrozenPose(float degrees)
     {
-        Vector3 pivot =
-            disguiseRoot.TransformPoint(disguisePivotLocal);
+        if (disguiseRoot == null)
+            return;
 
-        disguiseRoot.RotateAround(
-            pivot,
-            Vector3.up,
-            degrees
-        );
+        Quaternion q = Quaternion.AngleAxis(degrees, Vector3.up);
+
+        Vector3 position = transform.position + frozenOffset;
+
+        Vector3 pivot =
+            position +
+            frozenRotation *
+            Vector3.Scale(disguisePivotLocal, disguiseRoot.localScale);
+
+        Vector3 newPosition = pivot + q * (position - pivot);
+
+        frozenOffset = newPosition - transform.position;
+        frozenRotation = q * frozenRotation;
     }
 
     // =========================================================
@@ -592,7 +750,12 @@ public class PropTransform : MonoBehaviourPun
         currentTargetProp = null;
         isDisguised = true;
 
-        // Al transformarse en un prop nuevo se reinicia la rotación de R.
+        // Al transformarse en un prop nuevo se sale del modo quieto
+        // y se reinicia la rotación de R.
+        isFrozen = false;
+        frozenOffset = Vector3.zero;
+        frozenRotation = Quaternion.identity;
+
         appliedYaw = 0f;
         targetYaw = 0f;
         lastSentYaw = 0f;
