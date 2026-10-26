@@ -20,6 +20,7 @@ public class HabilidadCazador : MonoBehaviourPun
     {
         if (!photonView.IsMine || !GameManager.IsLocalAssassin()) return;
         if (ConfirmarSalida.MenuAbierto) return;
+        if (RelojPartida.EnEspera) return;
 
         if (Keyboard.current != null && Keyboard.current[tecla].wasPressedThisFrame && Lista)
         {

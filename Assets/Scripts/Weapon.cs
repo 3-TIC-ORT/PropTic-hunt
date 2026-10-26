@@ -66,6 +66,9 @@ public class Weapon : MonoBehaviourPun
 
     if (FinDePartida.Terminada)
         return;
+    
+    if (RelojPartida.EnEspera)
+        return;
 
     if (Mouse.current != null &&
         Mouse.current.leftButton.wasPressedThisFrame &&

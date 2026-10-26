@@ -44,7 +44,7 @@ public class SilbidoProp : MonoBehaviourPun
     {
         if (!photonView.IsMine || !RoleManager.HasKiller) return;
         if (GameManager.IsLocalAssassin() && !permitirAlCazadorEnPruebas) return;
-        if (ConfirmarSalida.MenuAbierto || FinDePartida.Terminada) return;
+        if (ConfirmarSalida.MenuAbierto || FinDePartida.Terminada || RelojPartida.EnEspera) return;
         if (Keyboard.current == null) return;
 
         if (Keyboard.current[tecla].wasPressedThisFrame && Time.time >= proximoSilbido)

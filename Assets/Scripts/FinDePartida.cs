@@ -3,12 +3,12 @@ using ExitGames.Client.Photon;
 using Photon.Pun;
 using Photon.Realtime;
 using TMPro;
-using UnityEngine.UI;
 using UnityEngine;
+using UnityEngine.UI;
 
-public class FinDePartida : MonoBehaviour, IOnEventCallback
+public class FinDePartida : MonoBehaviourPunCallbacks, IOnEventCallback
 {
-    public enum Motivo : byte { TodosCapturados = 0, SinVida = 1, TiempoAgotado = 2 }
+    public enum Motivo : byte { TodosCapturados = 0, SinVida = 1, TiempoAgotado = 2, CazadorAbandono = 3 }
 
     private const byte CODIGO_EVENTO = 77;
 
@@ -35,15 +35,15 @@ public class FinDePartida : MonoBehaviour, IOnEventCallback
         if (panelResultado != null) panelResultado.SetActive(false);
     }
 
-    private void OnEnable()
+    public override void OnEnable()
     {
-        PhotonNetwork.AddCallbackTarget(this);
+        base.OnEnable();
         VidaCazador.AlQuedarseSinVida += AlQuedarseSinVida;
     }
 
-    private void OnDisable()
+    public override void OnDisable()
     {
-        PhotonNetwork.RemoveCallbackTarget(this);
+        base.OnDisable();
         VidaCazador.AlQuedarseSinVida -= AlQuedarseSinVida;
     }
 
@@ -66,8 +66,22 @@ public class FinDePartida : MonoBehaviour, IOnEventCallback
         if (Time.time - tiempoInicio >= duracionPartida)
         {
             relojActivo = false;
-            if (PhotonNetwork.IsMasterClient) Enviar(Motivo.TiempoAgotado);
+            if (!PhotonNetwork.InRoom || PhotonNetwork.IsMasterClient) Enviar(Motivo.TiempoAgotado);
         }
+    }
+
+    // Cuenta los Props que siguen en la sala y no fueron capturados
+    private int PropsVivos(int ignorarActor)
+    {
+        int vivos = 0;
+        foreach (Player jugador in PhotonNetwork.PlayerList)
+        {
+            if (jugador.ActorNumber == ignorarActor) continue;
+            if (jugador.ActorNumber == GameManager.ArmedActorNumber) continue;
+            if (capturados.Contains(jugador.ActorNumber)) continue;
+            vivos++;
+        }
+        return vivos;
     }
 
     // La llama PlayerHealth cuando un Prop es capturado (corre en todos los jugadores)
@@ -81,10 +95,26 @@ public class FinDePartida : MonoBehaviour, IOnEventCallback
         if (Terminada || PhotonNetwork.CurrentRoom == null) return;
 
         capturados.Add(actorNumber);
-        int props = PhotonNetwork.CurrentRoom.PlayerCount - 1;
 
-        if (props > 0 && capturados.Count >= props && PhotonNetwork.IsMasterClient)
+        if (PropsVivos(-1) == 0 && PhotonNetwork.IsMasterClient)
             Enviar(Motivo.TodosCapturados);
+    }
+
+    // Photon avisa a los que quedan cuando alguien se va de la sala
+    public override void OnPlayerLeftRoom(Player otroJugador)
+    {
+        if (Terminada) return;
+
+        // Se fue el Cazador: ganan los Props que siguen vivos
+        if (otroJugador.ActorNumber == GameManager.ArmedActorNumber)
+        {
+            Terminar(Motivo.CazadorAbandono);
+            return;
+        }
+
+        // Se fue un Prop: si no queda ninguno vivo, gana el Cazador
+        if (PropsVivos(otroJugador.ActorNumber) == 0)
+            Terminar(Motivo.TodosCapturados);
     }
 
     private void AlQuedarseSinVida()
@@ -151,6 +181,9 @@ public class FinDePartida : MonoBehaviour, IOnEventCallback
 
     [ContextMenu("Probar: se acabó el tiempo")]
     private void ProbarTiempo() { Terminar(Motivo.TiempoAgotado); }
+
+    [ContextMenu("Probar: el Cazador abandonó")]
+    private void ProbarAbandono() { Terminar(Motivo.CazadorAbandono); }
 
     [ContextMenu("Iniciar partida (prueba)")]
     private void ProbarInicio() { IniciarPartida(); }
