@@ -71,9 +71,6 @@ public class PlayerMovement : MonoBehaviourPun
 
     private CharacterController controller;
 
-    // Se usa para saber si el prop está quieto (tecla Q).
-    private PropTransform propTransform;
-
     private float verticalRotation;
     private Vector3 velocity;
 
@@ -97,11 +94,14 @@ public class PlayerMovement : MonoBehaviourPun
     private void Awake()
     {
         controller = GetComponent<CharacterController>();
-        propTransform = GetComponent<PropTransform>();
     }
 
     private void Start()
     {
+        // Configuramos la apariencia del asesino en TODOS los clientes,
+        // incluidas las instancias que pertenecen a otros jugadores.
+        ConfigureAssassinVisual();
+
         // Este Player pertenece a otro cliente.
         if (!photonView.IsMine)
         {
@@ -115,6 +115,91 @@ public class PlayerMovement : MonoBehaviourPun
 
         DetermineRole();
         SetupCamera();
+    }
+
+    // =========================================================
+    // APARIENCIA DEL ASESINO
+    // =========================================================
+
+    private void ConfigureAssassinVisual()
+    {
+        // Si Photon todavía no asignó al dueño, no hacemos nada.
+        if (photonView.Owner == null)
+            return;
+
+        int assassinActor = RoleManager.GetKillerActorNumber();
+
+        // Solo se cambia la apariencia del jugador que tiene el rol
+        // de asesino. Los escapistas conservan su cápsula original.
+        if (assassinActor <= 0 ||
+            photonView.Owner.ActorNumber != assassinActor)
+        {
+            return;
+        }
+
+        // El archivo del proyecto se llama:
+        // Assets/Resources/futurojero.fbx
+        // Resources.Load utiliza el nombre sin la extensión.
+        GameObject assassinPrefab =
+            Resources.Load<GameObject>("futurojero");
+
+        if (assassinPrefab == null)
+        {
+            Debug.LogError(
+                "[PlayerMovement] No se encontró " +
+                "Assets/Resources/futurojero.fbx."
+            );
+
+            return;
+        }
+
+        // Ocultamos la malla de la cápsula solamente para el asesino.
+        // No modificamos el CharacterController ni sus colisiones.
+        Transform body = transform.Find("Body");
+
+        if (body != null)
+        {
+            Renderer[] bodyRenderers =
+                body.GetComponentsInChildren<Renderer>(true);
+
+            foreach (Renderer bodyRenderer in bodyRenderers)
+            {
+                if (bodyRenderer != null)
+                    bodyRenderer.enabled = false;
+            }
+        }
+        else
+        {
+            Debug.LogWarning(
+                "[PlayerMovement] No se encontró el objeto hijo 'Body'."
+            );
+        }
+
+        // Creamos el modelo como hijo del jugador para que
+        // acompañe sus movimientos y su rotación.
+        GameObject assassinModel =
+            Instantiate(assassinPrefab, transform, false);
+
+        assassinModel.name = "futuroGero";
+
+        assassinModel.transform.localPosition = Vector3.zero;
+        assassinModel.transform.localRotation = Quaternion.identity;
+        assassinModel.transform.localScale = Vector3.one;
+
+        // El asesino utiliza primera persona.
+        // Ocultamos su modelo solo en su propia pantalla.
+        // Los demás jugadores sí podrán verlo.
+        if (photonView.IsMine)
+        {
+            Renderer[] modelRenderers =
+                assassinModel.GetComponentsInChildren<Renderer>(true);
+
+            foreach (Renderer modelRenderer in modelRenderers)
+            {
+                if (modelRenderer != null)
+                    modelRenderer.enabled = false;
+            }
+        }
     }
 
     private void Update()
@@ -136,16 +221,6 @@ public class PlayerMovement : MonoBehaviourPun
         }
 
         ReadInput();
-
-        // Prop quieto (tecla Q): sin movimiento ni salto.
-        // La cámara sigue pudiendo girar.
-        if (propTransform != null && propTransform.IsFrozen)
-        {
-            cachedMoveInput = Vector2.zero;
-            isHoldingJump = false;
-            jumpBufferCounter = 0f;
-            currentHorizontalVelocity = Vector3.zero;
-        }
 
         if (isHunter)
         {
@@ -206,12 +281,10 @@ public class PlayerMovement : MonoBehaviourPun
             return;
 
         // Primera persona.
-        // IMPORTANTE: la base del CharacterController está en
-        // localPosition.y = 0 (los "pies" del personaje). Si dejamos
-        // la cámara en Vector3.zero, queda pegada al piso y el
-        // near clip plane corta el suelo. Por eso la subimos
-        // a la altura de los ojos.
-        cameraHolder.localPosition = new Vector3(0f, hunterEyeHeight, 0f);
+        // La cámara se coloca a la altura de los ojos.
+        cameraHolder.localPosition =
+            new Vector3(0f, hunterEyeHeight, 0f);
+
         cameraHolder.localRotation = Quaternion.identity;
 
         playerCamera.transform.localPosition = Vector3.zero;
@@ -226,7 +299,6 @@ public class PlayerMovement : MonoBehaviourPun
             return;
 
         currentCameraDistance = thirdPersonDistance;
-
         verticalRotation = thirdPersonAngle;
 
         UpdateEscapistCameraPosition(true);
@@ -248,27 +320,20 @@ public class PlayerMovement : MonoBehaviourPun
             lookInput = Mouse.current.delta.ReadValue();
         }
 
-        float mouseX =
-            lookInput.x * mouseSensitivity;
+        float mouseX = lookInput.x * mouseSensitivity;
 
-        // Rotación horizontal del jugador (a los lados).
-        // Con el prop quieto, PropTransform deja el disfraz fijo
-        // en el mundo, así que solo se mueve la cámara.
-        transform.Rotate(
-            Vector3.up * mouseX
-        );
+        // Rotación horizontal del jugador.
+        transform.Rotate(Vector3.up * mouseX);
 
-        // La cámara del perseguido NO rota verticalmente
-        // (arriba/abajo). Se mantiene siempre en el ángulo
-        // fijo definido por thirdPersonAngle.
+        // La cámara del perseguido mantiene su ángulo vertical.
         verticalRotation = thirdPersonAngle;
 
         UpdateEscapistCameraPosition(false);
     }
 
     /// <summary>
-    /// Calcula los límites combinados de todos los renderers
-    /// visibles del jugador (cuerpo o prop actual).
+    /// Calcula los límites de los renderers visibles
+    /// del jugador o del objeto en el que se transformó.
     /// </summary>
     private bool TryGetBodyBounds(out Bounds bounds)
     {
@@ -305,18 +370,18 @@ public class PlayerMovement : MonoBehaviourPun
 
         if (TryGetBodyBounds(out Bounds bounds))
         {
-            // Altura del prop medida desde los pies.
+            // Altura del objeto medida desde los pies.
             float top = bounds.max.y - transform.position.y;
 
-            // Prop chico -> pivote bajo.
-            // Jugador normal -> sin cambios.
+            // Objeto pequeño: pivote bajo.
+            // Jugador normal: altura habitual.
             pivotHeight = Mathf.Clamp(
                 top * heightOverProp,
                 minPivotHeight,
                 thirdPersonHeight
             );
 
-            // Prop grande -> cámara más lejos.
+            // Los objetos grandes necesitan más distancia de cámara.
             float largestExtent = Mathf.Max(
                 bounds.extents.x,
                 bounds.extents.y,
@@ -332,8 +397,7 @@ public class PlayerMovement : MonoBehaviourPun
                 maximumCameraDistance
             );
 
-            // Esfera más fina para props chicos
-            // (si no, no entran bajo una mesa).
+            // Ajuste para objetos pequeños.
             radius = Mathf.Min(
                 cameraCollisionRadius,
                 Mathf.Max(0.05f, top * 0.25f)
@@ -341,7 +405,7 @@ public class PlayerMovement : MonoBehaviourPun
         }
 
         // ---------------------------------------------------
-        // Colisión de cámara
+        // COLISIÓN DE CÁMARA
         // ---------------------------------------------------
 
         Vector3 origin =
@@ -372,7 +436,10 @@ public class PlayerMovement : MonoBehaviourPun
 
             allowedDistance = Mathf.Min(
                 allowedDistance,
-                Mathf.Max(0f, hit.distance - cameraCollisionMargin)
+                Mathf.Max(
+                    0f,
+                    hit.distance - cameraCollisionMargin
+                )
             );
         }
 
@@ -382,8 +449,7 @@ public class PlayerMovement : MonoBehaviourPun
             desiredDistance
         );
 
-        // Se acerca de golpe (evita ver a través de la pared)
-        // y se aleja suavemente.
+        // Se acerca de golpe y se aleja suavemente.
         if (instant || allowedDistance < currentCameraDistance)
         {
             currentCameraDistance = allowedDistance;
@@ -429,37 +495,29 @@ public class PlayerMovement : MonoBehaviourPun
 
         if (Mouse.current != null)
         {
-            lookInput =
-                Mouse.current.delta.ReadValue();
+            lookInput = Mouse.current.delta.ReadValue();
         }
 
-        float mouseX =
-            lookInput.x * mouseSensitivity;
-
-        float mouseY =
-            lookInput.y * mouseSensitivity;
+        float mouseX = lookInput.x * mouseSensitivity;
+        float mouseY = lookInput.y * mouseSensitivity;
 
         // Girar horizontalmente el jugador.
-        transform.Rotate(
-            Vector3.up * mouseX
-        );
+        transform.Rotate(Vector3.up * mouseX);
 
         // Girar verticalmente la cámara.
         verticalRotation -= mouseY;
 
-        verticalRotation =
-            Mathf.Clamp(
-                verticalRotation,
-                hunterMinVerticalAngle,
-                hunterMaxVerticalAngle
-            );
+        verticalRotation = Mathf.Clamp(
+            verticalRotation,
+            hunterMinVerticalAngle,
+            hunterMaxVerticalAngle
+        );
 
-        cameraHolder.localRotation =
-            Quaternion.Euler(
-                verticalRotation,
-                0f,
-                0f
-            );
+        cameraHolder.localRotation = Quaternion.Euler(
+            verticalRotation,
+            0f,
+            0f
+        );
     }
 
     // =========================================================
@@ -485,20 +543,17 @@ public class PlayerMovement : MonoBehaviourPun
         if (Keyboard.current.aKey.isPressed)
             cachedMoveInput.x -= 1f;
 
-        cachedMoveInput =
-            Vector2.ClampMagnitude(
-                cachedMoveInput,
-                1f
-            );
+        cachedMoveInput = Vector2.ClampMagnitude(
+            cachedMoveInput,
+            1f
+        );
 
         if (Keyboard.current.spaceKey.wasPressedThisFrame)
         {
-            jumpBufferCounter =
-                jumpBufferTime;
+            jumpBufferCounter = jumpBufferTime;
         }
 
-        isHoldingJump =
-            Keyboard.current.spaceKey.isPressed;
+        isHoldingJump = Keyboard.current.spaceKey.isPressed;
     }
 
     // =========================================================
@@ -508,22 +563,18 @@ public class PlayerMovement : MonoBehaviourPun
     private void HandleMovement()
     {
         Vector3 inputDirection =
-            transform.right *
-            cachedMoveInput.x;
+            transform.right * cachedMoveInput.x;
 
         inputDirection +=
-            transform.forward *
-            cachedMoveInput.y;
+            transform.forward * cachedMoveInput.y;
 
-        // Evita que diagonal sea más rápida.
-        inputDirection =
-            Vector3.ClampMagnitude(
-                inputDirection,
-                1f
-            );
+        // Evita que el movimiento diagonal sea más rápido.
+        inputDirection = Vector3.ClampMagnitude(
+            inputDirection,
+            1f
+        );
 
-        Vector3 targetVelocity =
-            inputDirection * speed;
+        Vector3 targetVelocity = inputDirection * speed;
 
         float movementRate;
 
@@ -536,28 +587,21 @@ public class PlayerMovement : MonoBehaviourPun
             movementRate = deceleration;
         }
 
-        // Aceleración / frenado suave.
-        currentHorizontalVelocity =
-            Vector3.MoveTowards(
-                currentHorizontalVelocity,
-                targetVelocity,
-                movementRate *
-                Time.deltaTime
-            );
+        // Aceleración y frenado suaves.
+        currentHorizontalVelocity = Vector3.MoveTowards(
+            currentHorizontalVelocity,
+            targetVelocity,
+            movementRate * Time.deltaTime
+        );
 
         Vector3 finalMove =
-            currentHorizontalVelocity +
-            velocity;
+            currentHorizontalVelocity + velocity;
 
-        CollisionFlags collisionFlags =
-            controller.Move(
-                finalMove *
-                Time.deltaTime
-            );
+        CollisionFlags collisionFlags = controller.Move(
+            finalMove * Time.deltaTime
+        );
 
-        // Si el CharacterController detecta suelo,
-        // mantenemos una pequeña velocidad negativa
-        // para que permanezca pegado al piso.
+        // Mantener al jugador pegado al suelo.
         if ((collisionFlags & CollisionFlags.Below) != 0)
         {
             if (velocity.y < 0f)
@@ -573,22 +617,18 @@ public class PlayerMovement : MonoBehaviourPun
 
     private void HandleJump()
     {
-        bool grounded =
-            controller.isGrounded;
+        bool grounded = controller.isGrounded;
 
         if (grounded)
         {
-            coyoteTimeCounter =
-                coyoteTime;
+            coyoteTimeCounter = coyoteTime;
         }
         else
         {
-            coyoteTimeCounter -=
-                Time.deltaTime;
+            coyoteTimeCounter -= Time.deltaTime;
         }
 
-        if (grounded &&
-            velocity.y < 0f)
+        if (grounded && velocity.y < 0f)
         {
             velocity.y = -2f;
         }
@@ -596,12 +636,9 @@ public class PlayerMovement : MonoBehaviourPun
         if (jumpBufferCounter > 0f &&
             coyoteTimeCounter > 0f)
         {
-            velocity.y =
-                Mathf.Sqrt(
-                    jumpHeight *
-                    -2f *
-                    gravity
-                );
+            velocity.y = Mathf.Sqrt(
+                jumpHeight * -2f * gravity
+            );
 
             jumpBufferCounter = 0f;
             coyoteTimeCounter = 0f;
@@ -610,29 +647,21 @@ public class PlayerMovement : MonoBehaviourPun
         if (velocity.y < 0f)
         {
             velocity.y +=
-                gravity *
-                fallMultiplier *
-                Time.deltaTime;
+                gravity * fallMultiplier * Time.deltaTime;
         }
-        else if (velocity.y > 0f &&
-                 !isHoldingJump)
+        else if (velocity.y > 0f && !isHoldingJump)
         {
             velocity.y +=
-                gravity *
-                lowJumpMultiplier *
-                Time.deltaTime;
+                gravity * lowJumpMultiplier * Time.deltaTime;
         }
         else
         {
-            velocity.y +=
-                gravity *
-                Time.deltaTime;
+            velocity.y += gravity * Time.deltaTime;
         }
 
         if (jumpBufferCounter > 0f)
         {
-            jumpBufferCounter -=
-                Time.deltaTime;
+            jumpBufferCounter -= Time.deltaTime;
         }
     }
 
@@ -642,8 +671,7 @@ public class PlayerMovement : MonoBehaviourPun
 
     private void DisableRemotePlayerCamera()
     {
-        if (playerCamera == null &&
-            cameraHolder != null)
+        if (playerCamera == null && cameraHolder != null)
         {
             playerCamera =
                 cameraHolder.GetComponentInChildren<Camera>();
