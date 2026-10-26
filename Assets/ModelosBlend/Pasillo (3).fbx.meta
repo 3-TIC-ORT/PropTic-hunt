@@ -23,17 +23,17 @@ ModelImporter:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: Textura abstracta de yeso azulado (1)
-    second: {fileID: 2800000, guid: 6f90adac1fbf24a328d86f1dbb3bf3b6, type: 3}
+    second: {fileID: 2800000, guid: 36c5c99c3f57d4a4fa869dd08650b545, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: Textura de yeso blanco suave (1)
-    second: {fileID: 2800000, guid: f69a920e88e38423d89843d6602610be, type: 3}
+    second: {fileID: 2800000, guid: 352110f30717741afa1afd56ead0bcfd, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: blue-glass-texture-background-free-photo
-    second: {fileID: 2800000, guid: c4a73bdfbdfbf486690b2439ee7d28ca, type: 3}
+    second: {fileID: 2800000, guid: 683815bdf30984bb2ad7dfeca42ca7f5, type: 3}
   materials:
     materialImportMode: 2
     materialName: 0
