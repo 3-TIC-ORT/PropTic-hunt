@@ -69,6 +69,12 @@ public class PlayerMovement : MonoBehaviourPun
     [SerializeField] private float coyoteTime = 0.15f;
     [SerializeField] private float jumpBufferTime = 0.2f;
 
+    [Header("Modelo y animaciones del asesino")]
+    [SerializeField] private string assassinModelResource = "futurojero";
+    [SerializeField] private string assassinAnimatorControllerResource = "GeroController";
+    [SerializeField] private float animationReferenceSpeed = 5f;
+    [SerializeField] private float animationSmoothTime = 0.1f;
+
     private CharacterController controller;
 
     private float verticalRotation;
@@ -82,10 +88,18 @@ public class PlayerMovement : MonoBehaviourPun
 
     private bool isHunter;
 
+    // Q activa o desactiva el bloqueo del movimiento.
+    private bool movementLocked = false;
+
     private float currentCameraDistance;
 
+    // Modelo y animaciones del asesino.
+    private GameObject assassinVisual;
+    private Animator assassinAnimator;
+    private bool assassinVisualConfigured;
+    private Vector3 lastAnimationPosition;
+
     // Velocidad horizontal actual.
-    // Se usa para hacer el movimiento más suave.
     private Vector3 currentHorizontalVelocity;
 
     // Buffer reutilizable para el SphereCast de la cámara.
@@ -98,15 +112,14 @@ public class PlayerMovement : MonoBehaviourPun
 
     private void Start()
     {
-        // Configuramos la apariencia del asesino en TODOS los clientes,
-        // incluidas las instancias que pertenecen a otros jugadores.
+        // Configuramos el modelo en cada cliente para que todos
+        // puedan ver al asesino.
         ConfigureAssassinVisual();
 
         // Este Player pertenece a otro cliente.
         if (!photonView.IsMine)
         {
             DisableRemotePlayerCamera();
-            enabled = false;
             return;
         }
 
@@ -117,44 +130,57 @@ public class PlayerMovement : MonoBehaviourPun
         SetupCamera();
     }
 
+    private void LateUpdate()
+    {
+        // Si el rol todavía no se había asignado al iniciar,
+        // volvemos a comprobarlo.
+        if (!assassinVisualConfigured)
+        {
+            ConfigureAssassinVisual();
+        }
+
+        UpdateAssassinAnimation();
+    }
+
     // =========================================================
-    // APARIENCIA DEL ASESINO
+    // MODELO Y ANIMACIONES DEL ASESINO
     // =========================================================
 
     private void ConfigureAssassinVisual()
     {
-        // Si Photon todavía no asignó al dueño, no hacemos nada.
-        if (photonView.Owner == null)
+        if (assassinVisualConfigured || photonView.Owner == null)
             return;
 
         int assassinActor = RoleManager.GetKillerActorNumber();
 
-        // Solo se cambia la apariencia del jugador que tiene el rol
-        // de asesino. Los escapistas conservan su cápsula original.
-        if (assassinActor <= 0 ||
-            photonView.Owner.ActorNumber != assassinActor)
+        // Puede que el rol todavía no se haya asignado.
+        if (assassinActor <= 0)
+            return;
+
+        // Solo cambiamos la apariencia del asesino.
+        if (photonView.Owner.ActorNumber != assassinActor)
         {
+            assassinVisualConfigured = true;
             return;
         }
 
-        // El archivo del proyecto se llama:
-        // Assets/Resources/futurojero.fbx
-        // Resources.Load utiliza el nombre sin la extensión.
+        // Cargamos el modelo desde Assets/Resources.
         GameObject assassinPrefab =
-            Resources.Load<GameObject>("futurojero");
+            Resources.Load<GameObject>(assassinModelResource);
 
         if (assassinPrefab == null)
         {
             Debug.LogError(
-                "[PlayerMovement] No se encontró " +
-                "Assets/Resources/futurojero.fbx."
+                "[PlayerMovement] No se encontró el modelo del asesino en " +
+                "Assets/Resources/" + assassinModelResource + ".fbx"
             );
 
+            assassinVisualConfigured = true;
             return;
         }
 
-        // Ocultamos la malla de la cápsula solamente para el asesino.
-        // No modificamos el CharacterController ni sus colisiones.
+        // Ocultamos la malla de la cápsula original
+        // únicamente para el asesino.
         Transform body = transform.Find("Body");
 
         if (body != null)
@@ -168,31 +194,64 @@ public class PlayerMovement : MonoBehaviourPun
                     bodyRenderer.enabled = false;
             }
         }
-        else
+
+        // Instanciamos Gero como hijo del jugador.
+        assassinVisual = Instantiate(
+            assassinPrefab,
+            transform,
+            false
+        );
+
+        assassinVisual.name = "futuroGero";
+
+        assassinVisual.transform.localPosition = Vector3.zero;
+        assassinVisual.transform.localRotation = Quaternion.identity;
+        assassinVisual.transform.localScale = Vector3.one;
+
+        // Buscamos el Animator del modelo.
+        assassinAnimator =
+            assassinVisual.GetComponentInChildren<Animator>(true);
+
+        // Cargamos el controlador desde Resources.
+        RuntimeAnimatorController geroController =
+            Resources.Load<RuntimeAnimatorController>(
+                assassinAnimatorControllerResource
+            );
+
+        if (assassinAnimator == null)
         {
-            Debug.LogWarning(
-                "[PlayerMovement] No se encontró el objeto hijo 'Body'."
+            Debug.LogError(
+                "[PlayerMovement] El modelo futurojero no tiene un Animator. " +
+                "Revisá el Rig del FBX."
             );
         }
+        else
+        {
+            if (geroController != null)
+            {
+                assassinAnimator.runtimeAnimatorController =
+                    geroController;
+            }
+            else
+            {
+                Debug.LogError(
+                    "[PlayerMovement] No se encontró el Animator Controller " +
+                    assassinAnimatorControllerResource +
+                    " dentro de Resources."
+                );
+            }
 
-        // Creamos el modelo como hijo del jugador para que
-        // acompañe sus movimientos y su rotación.
-        GameObject assassinModel =
-            Instantiate(assassinPrefab, transform, false);
+            // El movimiento lo controla el Player,
+            // no la animación.
+            assassinAnimator.applyRootMotion = false;
+        }
 
-        assassinModel.name = "futuroGero";
-
-        assassinModel.transform.localPosition = Vector3.zero;
-        assassinModel.transform.localRotation = Quaternion.identity;
-        assassinModel.transform.localScale = Vector3.one;
-
-        // El asesino utiliza primera persona.
-        // Ocultamos su modelo solo en su propia pantalla.
-        // Los demás jugadores sí podrán verlo.
+        // El asesino juega en primera persona.
+        // Ocultamos su modelo únicamente en su propia pantalla.
         if (photonView.IsMine)
         {
             Renderer[] modelRenderers =
-                assassinModel.GetComponentsInChildren<Renderer>(true);
+                assassinVisual.GetComponentsInChildren<Renderer>(true);
 
             foreach (Renderer modelRenderer in modelRenderers)
             {
@@ -200,28 +259,131 @@ public class PlayerMovement : MonoBehaviourPun
                     modelRenderer.enabled = false;
             }
         }
+
+        lastAnimationPosition = transform.position;
+        assassinVisualConfigured = true;
     }
+
+    private void UpdateAssassinAnimation()
+    {
+        if (assassinVisual == null || assassinAnimator == null)
+            return;
+
+        float deltaTime = Mathf.Max(Time.deltaTime, 0.001f);
+
+        // Calculamos el desplazamiento real del jugador.
+        Vector3 worldVelocity =
+            (transform.position - lastAnimationPosition) / deltaTime;
+
+        // Convertimos el movimiento a los ejes locales del jugador.
+        Vector3 localVelocity =
+            transform.InverseTransformDirection(worldVelocity);
+
+        float referenceSpeed =
+            Mathf.Max(animationReferenceSpeed, 0.01f);
+
+        float moveX = Mathf.Clamp(
+            localVelocity.x / referenceSpeed,
+            -1f,
+            1f
+        );
+
+        float moveY = Mathf.Clamp(
+            localVelocity.z / referenceSpeed,
+            -1f,
+            1f
+        );
+
+        // Evitamos pequeñas vibraciones cuando está quieto.
+        if (new Vector2(moveX, moveY).magnitude < 0.03f)
+        {
+            moveX = 0f;
+            moveY = 0f;
+        }
+
+        assassinAnimator.SetFloat(
+            "MoveX",
+            moveX,
+            animationSmoothTime,
+            deltaTime
+        );
+
+        assassinAnimator.SetFloat(
+            "MoveY",
+            moveY,
+            animationSmoothTime,
+            deltaTime
+        );
+
+        lastAnimationPosition = transform.position;
+    }
+
+    // =========================================================
+    // UPDATE PRINCIPAL
+    // =========================================================
 
     private void Update()
     {
         if (!photonView.IsMine)
             return;
 
-        // Con el panel de salida abierto: sin input,
-        // pero seguimos aplicando gravedad.
+        // Q activa o desactiva el bloqueo del movimiento.
+        // La cámara y la rotación siguen funcionando.
+        if (Keyboard.current != null &&
+            Keyboard.current.qKey.wasPressedThisFrame &&
+            !ConfirmarSalida.MenuAbierto &&
+            !FinDePartida.Terminada)
+        {
+            movementLocked = !movementLocked;
+
+            if (movementLocked)
+            {
+                // Frenamos inmediatamente el desplazamiento horizontal.
+                cachedMoveInput = Vector2.zero;
+                currentHorizontalVelocity = Vector3.zero;
+
+                // Cancelamos saltos pendientes.
+                isHoldingJump = false;
+                jumpBufferCounter = 0f;
+            }
+
+            Debug.Log(
+                movementLocked
+                    ? "Movimiento bloqueado."
+                    : "Movimiento habilitado."
+            );
+        }
+
+        // Si hay un menú abierto o terminó la partida,
+        // detenemos el movimiento y conservamos la gravedad.
         if (ConfirmarSalida.MenuAbierto || FinDePartida.Terminada)
         {
             cachedMoveInput = Vector2.zero;
+            currentHorizontalVelocity = Vector3.zero;
             isHoldingJump = false;
             jumpBufferCounter = 0f;
 
             HandleJump();
             HandleMovement();
+
             return;
         }
 
-        ReadInput();
+        if (movementLocked)
+        {
+            // No caminar ni saltar mientras Q esté activada.
+            cachedMoveInput = Vector2.zero;
+            currentHorizontalVelocity = Vector3.zero;
+            isHoldingJump = false;
+            jumpBufferCounter = 0f;
+        }
+        else
+        {
+            ReadInput();
+        }
 
+        // La cámara y la rotación continúan funcionando
+        // independientemente del bloqueo del movimiento.
         if (isHunter)
         {
             HandleHunterLook();
@@ -280,8 +442,7 @@ public class PlayerMovement : MonoBehaviourPun
         if (cameraHolder == null)
             return;
 
-        // Primera persona.
-        // La cámara se coloca a la altura de los ojos.
+        // Primera persona: altura de los ojos.
         cameraHolder.localPosition =
             new Vector3(0f, hunterEyeHeight, 0f);
 
@@ -322,19 +483,15 @@ public class PlayerMovement : MonoBehaviourPun
 
         float mouseX = lookInput.x * mouseSensitivity;
 
-        // Rotación horizontal del jugador.
+        // La rotación horizontal sigue funcionando aunque
+        // movementLocked esté activado.
         transform.Rotate(Vector3.up * mouseX);
 
-        // La cámara del perseguido mantiene su ángulo vertical.
         verticalRotation = thirdPersonAngle;
 
         UpdateEscapistCameraPosition(false);
     }
 
-    /// <summary>
-    /// Calcula los límites de los renderers visibles
-    /// del jugador o del objeto en el que se transformó.
-    /// </summary>
     private bool TryGetBodyBounds(out Bounds bounds)
     {
         bounds = new Bounds(transform.position, Vector3.zero);
@@ -370,18 +527,14 @@ public class PlayerMovement : MonoBehaviourPun
 
         if (TryGetBodyBounds(out Bounds bounds))
         {
-            // Altura del objeto medida desde los pies.
             float top = bounds.max.y - transform.position.y;
 
-            // Objeto pequeño: pivote bajo.
-            // Jugador normal: altura habitual.
             pivotHeight = Mathf.Clamp(
                 top * heightOverProp,
                 minPivotHeight,
                 thirdPersonHeight
             );
 
-            // Los objetos grandes necesitan más distancia de cámara.
             float largestExtent = Mathf.Max(
                 bounds.extents.x,
                 bounds.extents.y,
@@ -397,17 +550,13 @@ public class PlayerMovement : MonoBehaviourPun
                 maximumCameraDistance
             );
 
-            // Ajuste para objetos pequeños.
             radius = Mathf.Min(
                 cameraCollisionRadius,
                 Mathf.Max(0.05f, top * 0.25f)
             );
         }
 
-        // ---------------------------------------------------
-        // COLISIÓN DE CÁMARA
-        // ---------------------------------------------------
-
+        // Colisión de cámara.
         Vector3 origin =
             transform.position +
             Vector3.up * pivotHeight;
@@ -430,7 +579,7 @@ public class PlayerMovement : MonoBehaviourPun
         {
             RaycastHit hit = cameraHits[i];
 
-            // Ignorar los colliders del propio jugador.
+            // Ignoramos los colliders del propio jugador.
             if (hit.collider.transform.IsChildOf(transform))
                 continue;
 
@@ -449,7 +598,6 @@ public class PlayerMovement : MonoBehaviourPun
             desiredDistance
         );
 
-        // Se acerca de golpe y se aleja suavemente.
         if (instant || allowedDistance < currentCameraDistance)
         {
             currentCameraDistance = allowedDistance;
@@ -594,6 +742,8 @@ public class PlayerMovement : MonoBehaviourPun
             movementRate * Time.deltaTime
         );
 
+        // Si Q está activada, el movimiento horizontal
+        // ya está en cero. La gravedad sigue funcionando.
         Vector3 finalMove =
             currentHorizontalVelocity + velocity;
 
@@ -633,7 +783,9 @@ public class PlayerMovement : MonoBehaviourPun
             velocity.y = -2f;
         }
 
-        if (jumpBufferCounter > 0f &&
+        // No permitimos iniciar un salto con el movimiento bloqueado.
+        if (!movementLocked &&
+            jumpBufferCounter > 0f &&
             coyoteTimeCounter > 0f)
         {
             velocity.y = Mathf.Sqrt(
