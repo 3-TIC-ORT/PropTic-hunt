@@ -132,7 +132,7 @@ GameObject:
   - component: {fileID: 26207908}
   - component: {fileID: 26207907}
   m_Layer: 5
-  m_Name: Image (7)
+  m_Name: Ganar_3_Partidas_Como_Prop
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -401,25 +401,25 @@ RectTransform:
   - {fileID: 632943705}
   - {fileID: 780500060}
   - {fileID: 1214179992}
+  - {fileID: 1047278688}
+  - {fileID: 300072274}
+  - {fileID: 1835725096}
+  - {fileID: 1687530468}
+  - {fileID: 1522262677}
+  - {fileID: 552725017}
+  - {fileID: 1807996985}
+  - {fileID: 128136381}
+  - {fileID: 171755194}
+  - {fileID: 26207906}
+  - {fileID: 1007401126}
+  - {fileID: 521615148}
+  - {fileID: 1678108794}
   - {fileID: 1091669400}
   - {fileID: 2071483052}
   - {fileID: 610353292}
   - {fileID: 693673755}
   - {fileID: 1925554285}
-  - {fileID: 1835725096}
-  - {fileID: 1047278688}
-  - {fileID: 300072274}
-  - {fileID: 1687530468}
-  - {fileID: 1522262677}
-  - {fileID: 26207906}
-  - {fileID: 521615148}
   - {fileID: 2126014154}
-  - {fileID: 171755194}
-  - {fileID: 128136381}
-  - {fileID: 552725017}
-  - {fileID: 1007401126}
-  - {fileID: 1807996985}
-  - {fileID: 1678108794}
   - {fileID: 1809396027}
   - {fileID: 1544542007}
   m_Father: {fileID: 0}
@@ -517,7 +517,7 @@ GameObject:
   - component: {fileID: 128136383}
   - component: {fileID: 128136382}
   m_Layer: 5
-  m_Name: Image (11)
+  m_Name: Ganar_5_Partidas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -725,7 +725,7 @@ GameObject:
   - component: {fileID: 171755196}
   - component: {fileID: 171755195}
   m_Layer: 5
-  m_Name: Image (10)
+  m_Name: Ganar_1_Como_Prop
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -814,7 +814,7 @@ GameObject:
   - component: {fileID: 300072276}
   - component: {fileID: 300072275}
   m_Layer: 5
-  m_Name: Image (2)
+  m_Name: Silbar_3_Veces
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1477,7 +1477,7 @@ GameObject:
   - component: {fileID: 521615150}
   - component: {fileID: 521615149}
   m_Layer: 5
-  m_Name: Image (8)
+  m_Name: Ganar_3_Como_Cazador
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1716,7 +1716,7 @@ GameObject:
   - component: {fileID: 552725019}
   - component: {fileID: 552725018}
   m_Layer: 5
-  m_Name: Image (5)
+  m_Name: Jugar_10_Partidas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1880,7 +1880,7 @@ GameObject:
   - component: {fileID: 610353294}
   - component: {fileID: 610353293}
   m_Layer: 5
-  m_Name: Image (18)
+  m_Name: Disparo_Durante_Fase_De_Timbre
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2136,26 +2136,26 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MisionesManager
   barras:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 1214179993}
+  - {fileID: 1047278689}
+  - {fileID: 300072275}
+  - {fileID: 1835725097}
+  - {fileID: 1687530469}
+  - {fileID: 1522262678}
+  - {fileID: 552725018}
+  - {fileID: 1807996986}
+  - {fileID: 128136382}
+  - {fileID: 171755195}
+  - {fileID: 26207907}
+  - {fileID: 1007401127}
+  - {fileID: 521615149}
+  - {fileID: 1678108795}
+  - {fileID: 1091669401}
+  - {fileID: 2071483053}
+  - {fileID: 610353293}
+  - {fileID: 693673756}
+  - {fileID: 1925554286}
+  - {fileID: 2126014155}
 --- !u!4 &683020517
 Transform:
   m_ObjectHideFlags: 0
@@ -2184,7 +2184,7 @@ GameObject:
   - component: {fileID: 693673757}
   - component: {fileID: 693673756}
   m_Layer: 5
-  m_Name: Image (19)
+  m_Name: 3_Disparos_Durante_Fase_De_Timbre
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2648,7 +2648,7 @@ GameObject:
   - component: {fileID: 1007401128}
   - component: {fileID: 1007401127}
   m_Layer: 5
-  m_Name: Image (12)
+  m_Name: Ganar_1_Como_Cazador
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2670,7 +2670,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0.000009059906, y: -27.000004}
+  m_AnchoredPosition: {x: 0, y: -27}
   m_SizeDelta: {x: 100, y: 98.182}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1007401127
@@ -2737,7 +2737,7 @@ GameObject:
   - component: {fileID: 1047278690}
   - component: {fileID: 1047278689}
   m_Layer: 5
-  m_Name: Image (1)
+  m_Name: 5_Disparos_Exitosos
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2826,7 +2826,7 @@ GameObject:
   - component: {fileID: 1091669402}
   - component: {fileID: 1091669401}
   m_Layer: 5
-  m_Name: Image (16)
+  m_Name: Efectuar_8_Disparos
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2915,7 +2915,7 @@ GameObject:
   - component: {fileID: 1214179994}
   - component: {fileID: 1214179993}
   m_Layer: 5
-  m_Name: Image
+  m_Name: Sobrebivir_2_Minutos
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3373,7 +3373,7 @@ GameObject:
   - component: {fileID: 1522262679}
   - component: {fileID: 1522262678}
   m_Layer: 5
-  m_Name: Image (4)
+  m_Name: Jugar_5_Partidas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3674,7 +3674,7 @@ GameObject:
   - component: {fileID: 1678108796}
   - component: {fileID: 1678108795}
   m_Layer: 5
-  m_Name: Image (13)
+  m_Name: Sobrevivir_3_Minutos
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3763,7 +3763,7 @@ GameObject:
   - component: {fileID: 1687530470}
   - component: {fileID: 1687530469}
   m_Layer: 5
-  m_Name: Image (3)
+  m_Name: Jugar_3_Partidas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3927,7 +3927,7 @@ GameObject:
   - component: {fileID: 1807996987}
   - component: {fileID: 1807996986}
   m_Layer: 5
-  m_Name: Image (6)
+  m_Name: Ganar_Una_Partida
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4133,7 +4133,7 @@ GameObject:
   - component: {fileID: 1835725098}
   - component: {fileID: 1835725097}
   m_Layer: 5
-  m_Name: Image (23)
+  m_Name: Silbar_6_Veces
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4222,7 +4222,7 @@ GameObject:
   - component: {fileID: 1925554287}
   - component: {fileID: 1925554286}
   m_Layer: 5
-  m_Name: Image (21)
+  m_Name: Habilidad_3_Veces
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4386,7 +4386,7 @@ GameObject:
   - component: {fileID: 2071483054}
   - component: {fileID: 2071483053}
   m_Layer: 5
-  m_Name: Image (17)
+  m_Name: Efectuar_12_Disparos
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4550,7 +4550,7 @@ GameObject:
   - component: {fileID: 2126014156}
   - component: {fileID: 2126014155}
   m_Layer: 5
-  m_Name: Image (9)
+  m_Name: Usar_Habilidad_6_Veces
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
