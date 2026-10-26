@@ -9,6 +9,12 @@ public class RelojPartida : MonoBehaviour
     // Otros scripts lo consultan: durante la espera no se dispara, ni se usa la habilidad, ni se silba
     public static bool EnEspera { get; private set; }
 
+    // True desde que termina la espera hasta que termina la partida
+    public static bool PartidaEnCurso { get; private set; }
+
+    // Segundos que faltan para que termine la partida (-1 si todavía no empezó)
+    public static float SegundosRestantes { get; private set; } = -1f;
+
     private const string CLAVE_INICIO = "inicioEspera";
 
     public TMP_Text textoReloj;
@@ -26,11 +32,14 @@ public class RelojPartida : MonoBehaviour
     private void Awake()
     {
         EnEspera = true;
+        PartidaEnCurso = false;
+        SegundosRestantes = -1f;
     }
 
     private void OnDestroy()
     {
         EnEspera = false;
+        PartidaEnCurso = false;
     }
 
     private void Start()
@@ -52,6 +61,7 @@ public class RelojPartida : MonoBehaviour
         if (FinDePartida.Terminada)
         {
             EnEspera = false;
+            PartidaEnCurso = false;
             MostrarTexto("");
             return;
         }
@@ -78,6 +88,8 @@ public class RelojPartida : MonoBehaviour
         {
             if (!esperaTerminada) TerminarEspera();
             double restante = duracionEspera + duracionPartida - transcurrido;
+            PartidaEnCurso = true;
+            SegundosRestantes = Mathf.Max(0f, (float)restante);
             MostrarTexto("Tiempo restante " + Formato(restante));
         }
     }
