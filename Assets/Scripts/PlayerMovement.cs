@@ -158,6 +158,7 @@ public class PlayerMovement : MonoBehaviourPun
             return;
 
         // Solo cambiamos la apariencia del asesino.
+        // Los buscados conservan sus modelos y transformaciones.
         if (photonView.Owner.ActorNumber != assassinActor)
         {
             assassinVisualConfigured = true;
@@ -181,6 +182,7 @@ public class PlayerMovement : MonoBehaviourPun
 
         // Ocultamos la malla de la cápsula original
         // únicamente para el asesino.
+        // No desactivamos ni modificamos sus colliders.
         Transform body = transform.Find("Body");
 
         if (body != null)
@@ -207,6 +209,51 @@ public class PlayerMovement : MonoBehaviourPun
         assassinVisual.transform.localPosition = Vector3.zero;
         assassinVisual.transform.localRotation = Quaternion.identity;
         assassinVisual.transform.localScale = Vector3.one;
+
+        // -----------------------------------------------------
+        // AJUSTE VISUAL DE ALTURA
+        // -----------------------------------------------------
+
+        // Obtenemos los renderers del modelo.
+        Renderer[] modelRenderers =
+            assassinVisual.GetComponentsInChildren<Renderer>(true);
+
+        bool foundRenderer = false;
+        Bounds modelBounds = new Bounds();
+
+        foreach (Renderer modelRenderer in modelRenderers)
+        {
+            if (modelRenderer == null)
+                continue;
+
+            if (!foundRenderer)
+            {
+                modelBounds = modelRenderer.bounds;
+                foundRenderer = true;
+            }
+            else
+            {
+                modelBounds.Encapsulate(modelRenderer.bounds);
+            }
+        }
+
+        // Alineamos la parte inferior visual de Gero con la base
+        // del CharacterController del Player.
+        // Esto solo desplaza el modelo, no el jugador ni sus colliders.
+        if (foundRenderer && controller != null)
+        {
+            float floorHeight = controller.bounds.min.y;
+            float modelBottom = modelBounds.min.y;
+
+            float verticalOffset = floorHeight - modelBottom;
+
+            assassinVisual.transform.position +=
+                Vector3.up * verticalOffset;
+        }
+
+        // -----------------------------------------------------
+        // ANIMATOR
+        // -----------------------------------------------------
 
         // Buscamos el Animator del modelo.
         assassinAnimator =
@@ -248,11 +295,9 @@ public class PlayerMovement : MonoBehaviourPun
 
         // El asesino juega en primera persona.
         // Ocultamos su modelo únicamente en su propia pantalla.
+        // Los demás jugadores sí podrán verlo.
         if (photonView.IsMine)
         {
-            Renderer[] modelRenderers =
-                assassinVisual.GetComponentsInChildren<Renderer>(true);
-
             foreach (Renderer modelRenderer in modelRenderers)
             {
                 if (modelRenderer != null)
@@ -301,6 +346,8 @@ public class PlayerMovement : MonoBehaviourPun
             moveY = 0f;
         }
 
+        // Estos nombres deben coincidir con los parámetros
+        // del Blend Tree de GeroController.
         assassinAnimator.SetFloat(
             "MoveX",
             moveX,
