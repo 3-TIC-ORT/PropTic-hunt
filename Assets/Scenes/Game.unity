@@ -26326,9 +26326,6 @@ PrefabInstance:
       addedObject: {fileID: 1895600077}
     - targetCorrespondingSourceObject: {fileID: 8562407562423627312, guid: 687a95eac1d9442a1841c3c332c2b0e0, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1577933563}
-    - targetCorrespondingSourceObject: {fileID: 8562407562423627312, guid: 687a95eac1d9442a1841c3c332c2b0e0, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 1577933564}
     - targetCorrespondingSourceObject: {fileID: 7760869941629925284, guid: 687a95eac1d9442a1841c3c332c2b0e0, type: 3}
       insertIndex: -1
@@ -29152,19 +29149,19 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 1a7852ecdc9b9466991e8ccb9ada76bc, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.79999983
+      value: 0.8
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 1a7852ecdc9b9466991e8ccb9ada76bc, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.9
+      value: 0.8
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 1a7852ecdc9b9466991e8ccb9ada76bc, type: 3}
       propertyPath: m_LocalScale.z
-      value: 2
+      value: 1.6
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 1a7852ecdc9b9466991e8ccb9ada76bc, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 6.089999
+      value: 5.94
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 1a7852ecdc9b9466991e8ccb9ada76bc, type: 3}
       propertyPath: m_LocalPosition.y
@@ -29172,7 +29169,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 1a7852ecdc9b9466991e8ccb9ada76bc, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -14.040004
+      value: -14.04
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 1a7852ecdc9b9466991e8ccb9ada76bc, type: 3}
       propertyPath: m_LocalRotation.w
@@ -48565,7 +48562,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 1a7852ecdc9b9466991e8ccb9ada76bc, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.79999983
+      value: 0.8
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 1a7852ecdc9b9466991e8ccb9ada76bc, type: 3}
       propertyPath: m_LocalScale.y
@@ -48573,7 +48570,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 1a7852ecdc9b9466991e8ccb9ada76bc, type: 3}
       propertyPath: m_LocalScale.z
-      value: 2
+      value: 1.6
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 1a7852ecdc9b9466991e8ccb9ada76bc, type: 3}
       propertyPath: m_LocalPosition.x
@@ -48581,7 +48578,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 1a7852ecdc9b9466991e8ccb9ada76bc, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 2.86
+      value: 3.18
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 1a7852ecdc9b9466991e8ccb9ada76bc, type: 3}
       propertyPath: m_LocalPosition.z
@@ -51364,33 +51361,6 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 8530459506952857525, guid: decbab106903240f7bf8569f13700175, type: 3}
---- !u!54 &1577933563
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 838286036}
-  serializedVersion: 5
-  m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 1
-  m_IsKinematic: 0
-  m_Interpolate: 0
-  m_Constraints: 126
-  m_CollisionDetection: 0
 --- !u!64 &1577933564
 MeshCollider:
   m_ObjectHideFlags: 0

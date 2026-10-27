@@ -7,8 +7,23 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: AzulOscuro
+    second: {fileID: 2100000, guid: 7d1150516859a4968a94597c93b0e18e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: FondoVentana
     second: {fileID: 2100000, guid: d9edd394119284f88aa5f57409d4c4aa, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Ladrillos
+    second: {fileID: 2100000, guid: b6d0585d746194ca7b6eb90611205e85, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Madera
+    second: {fileID: 2100000, guid: 24c4be3c0e7bb4689af20c4de0f0c322, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
@@ -20,10 +35,65 @@ ModelImporter:
       name: ParedesBlancas
     second: {fileID: 2100000, guid: 62d394d9a5edc4899a22aa06774a0dca, type: 2}
   - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: ParedesBlancas2
+    second: {fileID: 2100000, guid: bac6cdb2eb22e42bf822a2f9d14ac9d0, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Plateado
+    second: {fileID: 2100000, guid: 17fd0276c9783443e98c626a646907cd, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Puerta
+    second: {fileID: 2100000, guid: b1dc14629ad7e4ab78384d072ae380d9, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: PuertaPasilloColor
+    second: {fileID: 2100000, guid: b8e53ee820cfd4bb6aa6fcba2acc3366, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: RosaColuma
+    second: {fileID: 2100000, guid: 10cb14f0c96c34a48ae81da6b9ba24ec, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Techo
+    second: {fileID: 2100000, guid: 910d71c48b4c04391bf262cd3b22ce3f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Transparente
+    second: {fileID: 2100000, guid: a4de50db5ce4640d6b561db264121963, type: 2}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Code_Generated_Image
+    second: {fileID: 2800000, guid: 99254f66727af442ba005daaed2b0ad0, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Madera
+    second: {fileID: 2800000, guid: 978188bd1b7b94352aff674060474f7d, type: 3}
+  - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: Textura abstracta de yeso azulado (1)
     second: {fileID: 2800000, guid: 36c5c99c3f57d4a4fa869dd08650b545, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Textura blanca minimalista (1)
+    second: {fileID: 2800000, guid: ef9a957e80f754a34a9df02aa33826eb, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: "Textura de techo ac\xFAstico en cuadr\xEDcula (1)"
+    second: {fileID: 2800000, guid: 372530019fa2c4e39a2d1fdf0ee8cf3c, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
@@ -32,8 +102,18 @@ ModelImporter:
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
+      name: TexturaLadrillo
+    second: {fileID: 2800000, guid: d02eaef483da94b0b9722a85ac6af1ef, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: TexturaNMLadrillo
+    second: {fileID: 2800000, guid: de4a9ac96d2904f89aa32487d993d778, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
       name: blue-glass-texture-background-free-photo
-    second: {fileID: 2800000, guid: 683815bdf30984bb2ad7dfeca42ca7f5, type: 3}
+    second: {fileID: 2800000, guid: a06d6d9f619a14b66b6b17b6bf5c9398, type: 3}
   materials:
     materialImportMode: 2
     materialName: 0
