@@ -30,15 +30,20 @@ public class VidaCazador : MonoBehaviourPun
         if (Local == this) Local = null;
     }
 
-    // La va a llamar la bala invisible cuando termine su recorrido
+    // La llama la bala invisible cuando termine su recorrido
     public void RegistrarDisparo(bool acerto)
     {
         if (SinVida) return;
 
         bool protegido = habilidad != null && habilidad.ConsumirDisparo();
-        if (acerto || protegido) return;
+        bool pierdeVida = !acerto && !protegido;
 
-        VidaActual--;
+        if (pierdeVida) VidaActual--;
+
+        EnviadorPartida.RegistrarDisparo(acerto, VidaActual);
+
+        if (!pierdeVida) return;
+
         Debug.Log("[Cazador] Disparo fallado. Vida: " + VidaActual + "/" + vidaMaxima);
 
         if (VidaActual <= 0)

@@ -56,6 +56,7 @@ public class ConfirmarSalida : MonoBehaviourPunCallbacks
     // Botón "Si".
     public void ConfirmarSalir()
     {
+        EnviadorPartida.EnviarAbandono();
         if (PhotonNetwork.InRoom)
             PhotonNetwork.LeaveRoom();
         else

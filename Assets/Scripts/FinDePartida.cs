@@ -95,6 +95,8 @@ public class FinDePartida : MonoBehaviourPunCallbacks, IOnEventCallback
         if (Terminada || PhotonNetwork.CurrentRoom == null) return;
 
         capturados.Add(actorNumber);
+        if (actorNumber == PhotonNetwork.LocalPlayer.ActorNumber)
+            EnviadorPartida.RegistrarCapturaLocal();
 
         if (PropsVivos(-1) == 0 && PhotonNetwork.IsMasterClient)
             Enviar(Motivo.TodosCapturados);
@@ -158,6 +160,7 @@ public class FinDePartida : MonoBehaviourPunCallbacks, IOnEventCallback
 
         ResultadoLocal = gane ? "Victoria" : "Derrota";
         Debug.Log("[Fin] Motivo: " + motivo + " | Resultado: " + ResultadoLocal);
+        EnviadorPartida.EnviarFinal();
 
         if (textoResultado != null)
             textoResultado.text = gane ? "¡GANASTE!" : "PERDISTE";

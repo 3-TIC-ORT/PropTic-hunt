@@ -25,6 +25,7 @@ public class HabilidadCazador : MonoBehaviourPun
         if (Keyboard.current != null && Keyboard.current[tecla].wasPressedThisFrame && Lista)
         {
             disparosRestantes = disparosProtegidos;
+            EnviadorPartida.RegistrarHabilidad();
             Debug.Log("[Habilidad] Activada: " + disparosProtegidos + " disparos protegidos");
         }
     }

@@ -27068,7 +27068,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RelojPartida
   textoReloj: {fileID: 692406063}
-  duracionEspera: 20
+  duracionEspera: 5
   retrasoInicio: 3
   alTerminarLaEspera:
     m_PersistentCalls:
@@ -30094,6 +30094,51 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 6894428203817054813, guid: 00679c3ced7fa4bbf916d7d73ecd55d7, type: 3}
+--- !u!1 &974121603
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 974121605}
+  - component: {fileID: 974121604}
+  m_Layer: 0
+  m_Name: EnviadorPartida
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &974121604
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 974121603}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9a65c5f1dd96ba4188165e64db2f574, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnviadorPartida
+  guardarDeVerdad: 0
+--- !u!4 &974121605
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 974121603}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 896.54175, y: 609.63043, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!64 &980946297
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -34907,7 +34952,7 @@ MonoBehaviour:
   fondoResultado: {fileID: 723815287}
   colorGane: {r: 0.12, g: 0.55, b: 0.25, a: 0.92}
   colorPerdi: {r: 0.7, g: 0.12, b: 0.12, a: 0.92}
-  duracionPartida: 300
+  duracionPartida: 60
 --- !u!4 &1095154315
 Transform:
   m_ObjectHideFlags: 0
@@ -48316,7 +48361,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TimbreManager
   sonido: {fileID: 8300000, guid: fa6eded41de027041a582140c436333c, type: 3}
-  duracionFase: 60
+  duracionFase: 30
 --- !u!4 &1507426193
 Transform:
   m_ObjectHideFlags: 0
@@ -68565,14 +68610,15 @@ SceneRoots:
   - {fileID: 995451760}
   - {fileID: 1796147672}
   - {fileID: 33044851}
-  - {fileID: 552460622}
-  - {fileID: 129719453}
-  - {fileID: 970989121}
-  - {fileID: 1991626899}
-  - {fileID: 838286034}
   - {fileID: 1234506042}
-  - {fileID: 1095154315}
+  - {fileID: 129719453}
   - {fileID: 346868150}
   - {fileID: 468495983}
+  - {fileID: 970989121}
+  - {fileID: 838286034}
+  - {fileID: 552460622}
+  - {fileID: 1991626899}
+  - {fileID: 1095154315}
   - {fileID: 857461408}
   - {fileID: 1507426193}
+  - {fileID: 974121605}
