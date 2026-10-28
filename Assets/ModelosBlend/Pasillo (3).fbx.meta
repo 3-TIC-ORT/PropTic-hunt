@@ -42,6 +42,11 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: PisoTextura
+    second: {fileID: 2100000, guid: 12bed048da9ae470ea94b9a1403933df, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: Plateado
     second: {fileID: 2100000, guid: 17fd0276c9783443e98c626a646907cd, type: 2}
   - first:
@@ -73,12 +78,12 @@ ModelImporter:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: Code_Generated_Image
-    second: {fileID: 2800000, guid: 99254f66727af442ba005daaed2b0ad0, type: 3}
+    second: {fileID: 2800000, guid: 234202ba1020640339189b8ecb8f6e22, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: Madera
-    second: {fileID: 2800000, guid: 978188bd1b7b94352aff674060474f7d, type: 3}
+    second: {fileID: 2800000, guid: 3c54642cb7ea8494ea6562316367d933, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
@@ -88,12 +93,17 @@ ModelImporter:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: Textura blanca minimalista (1)
-    second: {fileID: 2800000, guid: ef9a957e80f754a34a9df02aa33826eb, type: 3}
+    second: {fileID: 2800000, guid: 4e082e058115548068af94e3e687a4f4, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Textura de baldosas de terrazo (1)
+    second: {fileID: 2800000, guid: 5b648b6cee44c42d7927ebabed5566fc, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: "Textura de techo ac\xFAstico en cuadr\xEDcula (1)"
-    second: {fileID: 2800000, guid: 372530019fa2c4e39a2d1fdf0ee8cf3c, type: 3}
+    second: {fileID: 2800000, guid: 4501c4a7f72444b2aba0390cdc70d1d8, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
@@ -103,17 +113,17 @@ ModelImporter:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: TexturaLadrillo
-    second: {fileID: 2800000, guid: d02eaef483da94b0b9722a85ac6af1ef, type: 3}
+    second: {fileID: 2800000, guid: 09a6973d26cae4082a0957aa2949829c, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: TexturaNMLadrillo
-    second: {fileID: 2800000, guid: de4a9ac96d2904f89aa32487d993d778, type: 3}
+    second: {fileID: 2800000, guid: a417d6bbf88d841e4a4090297aff799e, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
       name: blue-glass-texture-background-free-photo
-    second: {fileID: 2800000, guid: a06d6d9f619a14b66b6b17b6bf5c9398, type: 3}
+    second: {fileID: 2800000, guid: c912e79cc218640e0b006f69a2f06f12, type: 3}
   materials:
     materialImportMode: 2
     materialName: 0
