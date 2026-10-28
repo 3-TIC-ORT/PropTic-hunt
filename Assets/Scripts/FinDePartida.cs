@@ -160,7 +160,6 @@ public class FinDePartida : MonoBehaviourPunCallbacks, IOnEventCallback
 
         ResultadoLocal = gane ? "Victoria" : "Derrota";
         Debug.Log("[Fin] Motivo: " + motivo + " | Resultado: " + ResultadoLocal);
-        EnviadorPartida.EnviarFinal();
 
         if (textoResultado != null)
             textoResultado.text = gane ? "¡GANASTE!" : "PERDISTE";
@@ -174,6 +173,7 @@ public class FinDePartida : MonoBehaviourPunCallbacks, IOnEventCallback
         // Libera el mouse para poder apretar el botón
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
+        EnviadorPartida.EnviarFinal();
     }
 
     [ContextMenu("Probar: todos capturados")]
