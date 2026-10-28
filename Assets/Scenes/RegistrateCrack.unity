@@ -2195,6 +2195,7 @@ MonoBehaviour:
   campoMail: {fileID: 77530859}
   campoNombre: {fileID: 826383557}
   campoContrasena: {fileID: 1205432972}
+  escenaSiguiente: Lobby
 --- !u!4 &1651687151
 Transform:
   m_ObjectHideFlags: 0
