@@ -115,7 +115,7 @@ public class PropTransform : MonoBehaviourPun
         DetectNearbyProp();
 
         if (Keyboard.current != null &&
-            Keyboard.current.eKey.wasPressedThisFrame)
+            Keyboard.current.eKey.wasPressedThisFrame && !isFrozen)
         {
             TryTransform();
         }
