@@ -241,7 +241,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NuevaContrasenaManager
   campoContrasena: {fileID: 235822213}
-  escenaSiguiente: Lobby
+  escenaSiguiente: Login
 --- !u!4 &202573361
 Transform:
   m_ObjectHideFlags: 0

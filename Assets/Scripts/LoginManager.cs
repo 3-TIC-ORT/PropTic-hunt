@@ -9,6 +9,8 @@ public class LoginManager : MonoBehaviour
     public TMP_InputField campoMail;
     public TMP_InputField campoContrasena;
     public string escenaSiguiente;
+    public TMP_Text textoError;
+    public GameObject panelError;
 
     string url = "https://api-prop-tic-hunt.vercel.app/auth/login";
 
@@ -37,6 +39,11 @@ public class LoginManager : MonoBehaviour
     }
 
     // Esta función la llama el botón
+    void Start()
+    {
+    panelError.SetActive(false);
+    }
+    
     public void IniciarLogin()
     {
         StartCoroutine(HacerLogin());
@@ -44,6 +51,8 @@ public class LoginManager : MonoBehaviour
 
     IEnumerator HacerLogin()
     {
+        textoError.text = "";
+        panelError.SetActive(false);
         DatosLogin datos = new DatosLogin();
         datos.mail = campoMail.text;
         datos.contrasena = campoContrasena.text;
@@ -67,6 +76,11 @@ public class LoginManager : MonoBehaviour
         else
         {
             Debug.Log("Error: " + pedido.downloadHandler.text);
+            panelError.SetActive(true);
+            if (pedido.result == UnityWebRequest.Result.ConnectionError)
+                textoError.text = "No se pudo conectar. Revisá tu internet.";
+            else
+                textoError.text = "Mail o contraseña incorrectos.";
         }
     }
 }

@@ -121,12 +121,30 @@ public class EnviadorPartida : MonoBehaviour
 
     public static void EnviarFinal()
     {
-        if (Instancia != null) Instancia.Enviar(FinDePartida.ResultadoLocal, false);
+        if (Instancia == null) return;
+
+        try
+        {
+            Instancia.Enviar(FinDePartida.ResultadoLocal, false);
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError("[Partida] Falló el envío final: " + e);
+        }
     }
 
     public static void EnviarAbandono()
     {
-        if (Instancia != null && !FinDePartida.Terminada) Instancia.Enviar("Derrota", true);
+        if (Instancia == null || FinDePartida.Terminada) return;
+
+        try
+        {
+            Instancia.Enviar("Derrota", true);
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError("[Partida] Falló el envío del abandono: " + e);
+        }
     }
 
     // ---- Armado y envío ----
