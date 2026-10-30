@@ -349,6 +349,7 @@ GameObject:
   - component: {fileID: 29398707777069864}
   - component: {fileID: -7713558581430170058}
   - component: {fileID: 6083430179655187017}
+  - component: {fileID: 3995826123857527652}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -585,8 +586,26 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SilbidoProp
   tecla: 20
   tiempoEspera: 5
-  sonido: {fileID: 8300000, guid: a734a8e2c778502428ef375fbea10532, type: 3}
+  frases: []
   permitirAlCazadorEnPruebas: 0
+--- !u!114 &3995826123857527652
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4363353267580080555}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbe0b4b416e68d54ca6ac28b111d49f6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SilbidoAutomatico
+  sonido: {fileID: 8300000, guid: a734a8e2c778502428ef375fbea10532, type: 3}
+  cadaSegundos: 15
+  pitchCerca: 1
+  pitchLejos: 0.7
+  distanciaMinima: 3
+  distanciaMaxima: 40
 --- !u!1 &6366024219335910907
 GameObject:
   m_ObjectHideFlags: 0
