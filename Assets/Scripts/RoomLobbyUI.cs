@@ -205,25 +205,22 @@ public class RoomLobbyUI : MonoBehaviourPunCallbacks
             refs.avatar = EnsureImage(
                 bg.transform, "Avatar",
                 new Vector2(0f, 0.5f),
-                new Vector2(34f, 0f),
-                new Vector2(42f, 42f));
+                new Vector2(8f, 0f),
+                new Vector2(6.5f, 6.5f));
 
             refs.nameText = EnsureText(bg.transform);
 
-            // Corona y punto comparten el extremo derecho porque nunca
-            // se muestran al mismo tiempo: corona para el anfitrión,
-            // punto para los demás jugadores.
             refs.crown = EnsureImage(
                 bg.transform, "Corona",
                 new Vector2(1f, 0.5f),
-                new Vector2(-28f, 0f),
-                new Vector2(36f, 36f));
+                new Vector2(-8f, 0f),
+                new Vector2(5f, 5f));
 
             refs.dot = EnsureImage(
                 bg.transform, "Punto",
                 new Vector2(1f, 0.5f),
-                new Vector2(-28f, 0f),
-                new Vector2(18f, 18f));
+                new Vector2(-8f, 0f),
+                new Vector2(7f, 7f));
 
             if (crownSprite != null)
                 refs.crown.sprite = crownSprite;
@@ -305,8 +302,8 @@ public class RoomLobbyUI : MonoBehaviourPunCallbacks
         rt.anchorMin = new Vector2(0f, 0.5f);
         rt.anchorMax = new Vector2(1f, 0.5f);
         rt.pivot = new Vector2(0f, 0.5f);
-        rt.anchoredPosition = new Vector2(82f, 0f);
-        rt.sizeDelta = new Vector2(-130f, 44f);
+        rt.anchoredPosition = new Vector2(48f, 0f);
+        rt.sizeDelta = new Vector2(-104f, 40f);
         rt.localScale = Vector3.one;
         rt.localRotation = Quaternion.identity;
 
