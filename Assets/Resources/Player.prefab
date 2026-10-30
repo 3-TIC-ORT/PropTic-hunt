@@ -586,7 +586,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SilbidoProp
   tecla: 20
   tiempoEspera: 5
-  frases: []
+  frases:
+  - {fileID: 8300000, guid: 184fc47b3c704894fb76c5c498992914, type: 3}
+  - {fileID: 8300000, guid: 9e582bed8f9039c438627d533e0a6c06, type: 3}
+  - {fileID: 8300000, guid: ab26bbf4b1e1a5e418b446ce8690a669, type: 3}
   permitirAlCazadorEnPruebas: 0
 --- !u!114 &3995826123857527652
 MonoBehaviour:
