@@ -48,6 +48,7 @@ MonoBehaviour:
   - RPC_SetDisguiseYaw
   - RPC_Silbar
   - RPC_SetFrozen
+  - RPC_DecirFrase
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 0
