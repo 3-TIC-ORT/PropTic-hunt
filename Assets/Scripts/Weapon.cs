@@ -4,13 +4,39 @@ using UnityEngine.InputSystem;
 
 public class Weapon : MonoBehaviourPun
 {
-    [Header("Referencias")]
+    [Header("Arma en primera persona (solo la ve el dueño)")]
+    [Tooltip("objeto_arma hija de la cámara, apuntando recto hacia adelante. " +
+             "Reemplaza al cubo 'Weapon'.")]
     public GameObject weaponVisual;
 
+    [Header("Arma en tercera persona (la ven los demás)")]
+    [Tooltip("Prefab de objeto_arma que se pega a la mano derecha de Gero.")]
+    public GameObject worldWeaponPrefab;
+
+    [Tooltip("Tamaño del arma en tercera persona (1 = tamaño del prefab).")]
+    public float weaponScale = 0.75f;
+
+    [Tooltip("Desplazamiento extra respecto al punto medio entre las dos manos, " +
+             "en ejes del jugador (X derecha, Y arriba, Z adelante).")]
+    public Vector3 positionOffset = Vector3.zero;
+
+    [Tooltip("Giro extra sobre la dirección hacia adelante (grados). Normalmente 0. " +
+             "Si el cañón apunta para atrás, poné Y = 180.")]
+    public Vector3 aimAlignedEuler = Vector3.zero;
+
+    [Tooltip("Solo se usa si el arma NO tiene un objeto 'Muzzle'. " +
+             "Rotación que lleva el cañón hacia adelante (probá Y = -90 o 90).")]
+    public Vector3 manualBarrelEuler = new Vector3(0f, -90f, 0f);
+
+    [Tooltip("Nombre del objeto vacío dentro de objeto_arma por donde sale la bala. " +
+             "Si no existe se usa el centro del arma.")]
+    public string worldMuzzleName = "Muzzle";
+
+    [Header("Referencias")]
     [Tooltip("Cámara utilizada para apuntar.")]
     public Transform cameraTransform;
 
-    [Tooltip("Punto desde donde sale visualmente la bala.")]
+    [Tooltip("Punto de salida de la bala EN PRIMERA PERSONA (hijo del arma FPS).")]
     public Transform muzzlePoint;
 
     [Tooltip("Punto desde donde sale la hitbox invisible.")]
@@ -24,13 +50,20 @@ public class Weapon : MonoBehaviourPun
 
     [Header("Configuración")]
     public float range = 100f;
-
     public float fireRate = 1f;
 
     [Tooltip("Velocidad de la hitbox invisible.")]
     public float bulletSpeed = 80f;
 
     private float nextFireTime;
+
+    // Arma de tercera persona (se crea en runtime sobre Gero).
+    private GameObject worldWeaponInstance;
+    private Transform worldMuzzle;
+    private Transform rightHandBone;
+    private Transform leftHandBone;
+    private Vector3 weaponLocalCenter;
+    private Quaternion barrelRotation = Quaternion.identity;
 
     private bool IsOwnerAssassin()
     {
@@ -42,44 +75,162 @@ public class Weapon : MonoBehaviourPun
         );
     }
 
+    // Busca el modelo de Gero (lo crea PlayerMovement) y crea el arma de
+    // tercera persona. Devuelve false si Gero todavía no existe.
+    private bool EnsureWorldWeapon()
+    {
+        if (worldWeaponInstance != null)
+            return true;
+
+        if (worldWeaponPrefab == null)
+            return false;
+
+        Transform gero = transform.Find("futuroGero");
+
+        if (gero == null)
+            return false;
+
+        Animator animator = gero.GetComponentInChildren<Animator>(true);
+
+        if (animator == null || !animator.isHuman)
+            return false;
+
+        rightHandBone = animator.GetBoneTransform(HumanBodyBones.RightHand);
+        leftHandBone = animator.GetBoneTransform(HumanBodyBones.LeftHand);
+
+        if (rightHandBone == null)
+            return false;
+
+        // Hija del jugador (escala 1), no del hueso: así el tamaño es predecible.
+        worldWeaponInstance = Instantiate(worldWeaponPrefab, transform, false);
+        worldWeaponInstance.name = "objeto_arma_mundo";
+        worldWeaponInstance.transform.localScale =
+            worldWeaponPrefab.transform.localScale * weaponScale;
+
+        worldMuzzle = worldWeaponInstance.transform.Find(worldMuzzleName);
+
+        // Centro del modelo en su propio espacio local.
+        Transform wt = worldWeaponInstance.transform;
+        Renderer[] renderers =
+            worldWeaponInstance.GetComponentsInChildren<Renderer>(true);
+
+        if (renderers.Length > 0)
+        {
+            Bounds bounds = renderers[0].bounds;
+
+            for (int i = 1; i < renderers.Length; i++)
+                bounds.Encapsulate(renderers[i].bounds);
+
+            weaponLocalCenter = wt.InverseTransformPoint(bounds.center);
+        }
+
+        // Orientación del cañón.
+        barrelRotation = Quaternion.Euler(manualBarrelEuler);
+
+        if (worldMuzzle != null)
+        {
+            // Automático: gira el arma para que el Muzzle quede hacia adelante.
+            Vector3 dir =
+                wt.InverseTransformPoint(worldMuzzle.position) - weaponLocalCenter;
+
+            dir.y = 0f;
+
+            if (dir.sqrMagnitude > 0.0001f)
+            {
+                barrelRotation =
+                    Quaternion.FromToRotation(dir.normalized, Vector3.forward);
+            }
+            else
+            {
+                worldMuzzle = null;
+            }
+        }
+
+        if (worldMuzzle == null)
+            worldMuzzle = wt;
+
+        PlaceWorldWeapon();
+        return true;
+    }
+
+    // Coloca el arma centrada entre las dos manos y apuntando hacia adelante.
+    private void PlaceWorldWeapon()
+    {
+        if (worldWeaponInstance == null || rightHandBone == null)
+            return;
+
+        Vector3 handsCenter = leftHandBone != null
+            ? (rightHandBone.position + leftHandBone.position) * 0.5f
+            : rightHandBone.position;
+
+        Quaternion rot =
+            transform.rotation *
+            Quaternion.Euler(aimAlignedEuler) *
+            barrelRotation;
+
+        Transform wt = worldWeaponInstance.transform;
+
+        wt.rotation = rot;
+
+        // Ubica el centro del arma sobre el punto medio de las manos.
+        Vector3 centerWorldOffset =
+            rot * Vector3.Scale(weaponLocalCenter, wt.localScale);
+
+        wt.position =
+            handsCenter +
+            transform.rotation * positionOffset -
+            centerWorldOffset;
+    }
+
+    // Después de la animación, para que el arma siga a las manos.
+    private void LateUpdate()
+    {
+        if (worldWeaponInstance != null &&
+            worldWeaponInstance.activeSelf)
+        {
+            PlaceWorldWeapon();
+        }
+    }
+
     private void Update()
-{
-    bool isArmed =
-        IsOwnerAssassin();
-
-    if (weaponVisual != null)
     {
-        weaponVisual.SetActive(isArmed);
+        bool isArmed = IsOwnerAssassin();
+
+        // Primera persona: solo el dueño y solo si es el asesino.
+        if (weaponVisual != null)
+            weaponVisual.SetActive(isArmed && photonView.IsMine);
+
+        // Tercera persona: solo los demás jugadores.
+        if (isArmed && !photonView.IsMine)
+            EnsureWorldWeapon();
+
+        if (worldWeaponInstance != null)
+            worldWeaponInstance.SetActive(isArmed && !photonView.IsMine);
+
+        // Solo el dueño controla el arma.
+        if (!photonView.IsMine)
+            return;
+
+        if (!isArmed)
+            return;
+
+        if (ConfirmarSalida.MenuAbierto)
+            return;
+
+        if (FinDePartida.Terminada)
+            return;
+
+        if (RelojPartida.EnEspera)
+            return;
+
+        if (Mouse.current != null &&
+            Mouse.current.leftButton.wasPressedThisFrame &&
+            Time.time >= nextFireTime)
+        {
+            Shoot();
+            nextFireTime = Time.time + fireRate;
+        }
     }
-
-    // Solo el dueño controla el arma.
-    if (!photonView.IsMine)
-        return;
-
-    // Los escapistas no pueden disparar.
-    if (!isArmed)
-        return;
-
-    // Con el panel de salida abierto no se dispara.
-    if (ConfirmarSalida.MenuAbierto)
-        return;
-
-    if (FinDePartida.Terminada)
-        return;
-    
-    if (RelojPartida.EnEspera)
-        return;
-
-    if (Mouse.current != null &&
-        Mouse.current.leftButton.wasPressedThisFrame &&
-        Time.time >= nextFireTime)
-    {
-        Shoot();
-
-        nextFireTime =
-            Time.time + fireRate;
-    }
-}
 
     private void Shoot()
     {
@@ -176,34 +327,36 @@ public class Weapon : MonoBehaviourPun
         photonView.RPC(
             nameof(RPC_SpawnVisualBullet),
             RpcTarget.All,
-            muzzlePoint.position,
             direction
         );
     }
 
     [PunRPC]
-    private void RPC_SpawnVisualBullet(
-        Vector3 startPosition,
-        Vector3 direction)
+    private void RPC_SpawnVisualBullet(Vector3 direction)
     {
         if (bulletVisualPrefab == null)
             return;
 
-        GameObject bullet =
-    Instantiate(
-        bulletVisualPrefab,
-        startPosition,
-        Quaternion.LookRotation(direction) *
-        Quaternion.Euler(90f, 0f, 0f)
-    );
+        // Cada cliente elige su propio punto de salida:
+        // el dueño dispara desde el arma FPS, los demás desde la mano de Gero.
+        Vector3 startPosition;
 
-        StartCoroutine(
-            MoveVisualBullet(
-                bullet,
+        if (photonView.IsMine && muzzlePoint != null)
+            startPosition = muzzlePoint.position;
+        else if (worldMuzzle != null)
+            startPosition = worldMuzzle.position;
+        else
+            startPosition = transform.position + Vector3.up * 1.5f;
+
+        GameObject bullet =
+            Instantiate(
+                bulletVisualPrefab,
                 startPosition,
-                direction
-            )
-        );
+                Quaternion.LookRotation(direction) *
+                Quaternion.Euler(90f, 0f, 0f)
+            );
+
+        StartCoroutine(MoveVisualBullet(bullet, startPosition, direction));
     }
 
     private System.Collections.IEnumerator MoveVisualBullet(
