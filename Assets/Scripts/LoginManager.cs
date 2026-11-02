@@ -1,3 +1,4 @@
+using Photon.Pun;
 using System.Collections;
 using TMPro;
 using UnityEngine;
@@ -69,6 +70,7 @@ public class LoginManager : MonoBehaviour
             SesionUsuario.Nombre = respuesta.usuario.nombre;
             SesionUsuario.Mail = respuesta.usuario.mail;
             SesionUsuario.PuntosTotales = respuesta.usuario.puntos_totales;
+            PhotonNetwork.NickName = SesionUsuario.Nombre;
 
             Debug.Log("Login correcto. Bienvenido " + SesionUsuario.Nombre);
             SceneManager.LoadScene(escenaSiguiente);

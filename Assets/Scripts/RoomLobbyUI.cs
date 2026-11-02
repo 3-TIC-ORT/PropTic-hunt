@@ -302,8 +302,8 @@ public class RoomLobbyUI : MonoBehaviourPunCallbacks
         rt.anchorMin = new Vector2(0f, 0.5f);
         rt.anchorMax = new Vector2(1f, 0.5f);
         rt.pivot = new Vector2(0f, 0.5f);
-        rt.anchoredPosition = new Vector2(48f, 0f);
-        rt.sizeDelta = new Vector2(-104f, 40f);
+        rt.anchoredPosition = new Vector2(16f, 0f);
+        rt.sizeDelta = new Vector2(-30f, 10f);
         rt.localScale = Vector3.one;
         rt.localRotation = Quaternion.identity;
 

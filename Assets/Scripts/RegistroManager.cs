@@ -1,4 +1,5 @@
 using System.Collections;
+using Photon.Pun;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -63,6 +64,7 @@ public class RegistroManager : MonoBehaviour
             SesionUsuario.Nombre = respuesta.usuario.nombre;
             SesionUsuario.Mail = respuesta.usuario.mail;
             SesionUsuario.PuntosTotales = respuesta.usuario.puntos_totales;
+            PhotonNetwork.NickName = SesionUsuario.Nombre;
 
             SceneManager.LoadScene(escenaSiguiente);
         }
