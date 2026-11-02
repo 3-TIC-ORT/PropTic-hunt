@@ -25,7 +25,7 @@ Transform:
   m_GameObject: {fileID: 326379574010315292}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.38, y: 0, z: 0}
+  m_LocalPosition: {x: 1.22, y: 0, z: -0.14}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -161,12 +161,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1225324028760843228}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.144, y: -0.255, z: 0.77}
+  m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 0.77, y: 0.27499998, z: -0.38}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1659740171015172117}
+  m_Father: {fileID: 428463531289784788}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &3070354094166714128
 GameObject:
@@ -440,9 +440,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3e810cac339f84ad18c8934bae583688, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Weapon
-  weaponVisual: {fileID: 0}
+  weaponVisual: {fileID: 1061131951937481582}
+  worldWeaponPrefab: {fileID: 1061131951937481582}
+  weaponScale: 0.5
+  positionOffset: {x: 0, y: 0, z: 0}
+  aimAlignedEuler: {x: 0, y: 0, z: 0}
+  manualBarrelEuler: {x: 0, y: 90, z: 0}
+  worldMuzzleName: Muzzle
   cameraTransform: {fileID: 1631439276020059449}
-  muzzlePoint: {fileID: 5836991825591527065}
+  muzzlePoint: {fileID: 3488341117076015550}
   hitboxOrigin: {fileID: 5515837212952475344}
   bulletVisualPrefab: {fileID: 2515080537796893670, guid: 43f72d4ea74ec434fa5eda50b3dd50a9, type: 3}
   hitboxBulletPrefab: {fileID: 6136459431565994116, guid: 1aeb9452e6176478da84cb9c212986db, type: 3}
@@ -810,7 +816,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1631439276020059449}
-  - {fileID: 5836991825591527065}
   m_Father: {fileID: 8235937589097352002}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &178046334794847807
@@ -823,15 +828,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: e180bd1581c734bc5ad89d2d2ab2c9f3, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.84
+      value: 0.52
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: e180bd1581c734bc5ad89d2d2ab2c9f3, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -2.35
+      value: -0.53
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: e180bd1581c734bc5ad89d2d2ab2c9f3, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -2.25
+      value: 1.7
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: e180bd1581c734bc5ad89d2d2ab2c9f3, type: 3}
       propertyPath: m_LocalRotation.w
@@ -870,11 +875,19 @@ PrefabInstance:
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: e180bd1581c734bc5ad89d2d2ab2c9f3, type: 3}
       insertIndex: -1
+      addedObject: {fileID: 5836991825591527065}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: e180bd1581c734bc5ad89d2d2ab2c9f3, type: 3}
+      insertIndex: -1
       addedObject: {fileID: 3488341117076015550}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e180bd1581c734bc5ad89d2d2ab2c9f3, type: 3}
 --- !u!4 &428463531289784788 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: e180bd1581c734bc5ad89d2d2ab2c9f3, type: 3}
+  m_PrefabInstance: {fileID: 178046334794847807}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1061131951937481582 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: e180bd1581c734bc5ad89d2d2ab2c9f3, type: 3}
   m_PrefabInstance: {fileID: 178046334794847807}
   m_PrefabAsset: {fileID: 0}
