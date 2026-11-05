@@ -4,73 +4,85 @@ using Photon.Pun;
 using UnityEngine;
 using UnityEngine.Networking;
 
+
 [System.Serializable]
 public class DisparoDatos
 {
     public bool impacto_exitoso;
     public int vida_restante;
     public bool fase_timbre_sonando;
-    public int segundo_partida;
+    public float segundo_partida;
 }
+
 
 [System.Serializable]
 public class HabilidadUsoDatos
 {
     public string nombre_habilidad;
-    public int momento_uso;
+    public float momento_uso;
 }
+
 
 [System.Serializable]
 public class AbandonoDatos
 {
-    public int tiempo_transcurrido;
+    public float tiempo_transcurrido;
     public string rol_actual;
     public int vida_cazador_actual;
 }
+
 
 [System.Serializable]
 public class PartidaDatos
 {
     public string codigo_partida;
-    public int duracion;
+    public float duracion;
     public string rol;
     public string resultado;
     public int disparos_acertados;
     public int disparos_totales;
     public int silbidos;
-    public int tiempo_sobrevivido;
+    public float tiempo_sobrevivido;
     public List<DisparoDatos> disparos = new List<DisparoDatos>();
     public List<HabilidadUsoDatos> habilidades = new List<HabilidadUsoDatos>();
     public List<AbandonoDatos> abandonos = new List<AbandonoDatos>();
 }
+
 
 public class EnviadorPartida : MonoBehaviour
 {
     private const string URL = "https://api-prop-tic-hunt.vercel.app/juego/partidas";
     private const string NOMBRE_HABILIDAD = "Mano Firme";
 
+
     public static EnviadorPartida Instancia { get; private set; }
+
 
     [Tooltip("Destildado: modo ensayo, la API valida y responde pero NO guarda nada. Tildar solo cuando se quiera que cuente.")]
     public bool guardarDeVerdad = false;
 
+
     private readonly List<DisparoDatos> disparos = new List<DisparoDatos>();
     private readonly List<HabilidadUsoDatos> habilidades = new List<HabilidadUsoDatos>();
+
 
     private float inicioPartida;
     private bool inicioRegistrado;
     private float segundoCaptura = -1f;
     private bool yaEnviada;
 
+
     private void Awake()
     {
         Instancia = this;
     }
 
+
     private void OnDestroy()
     {
         if (Instancia == this) Instancia = null;
     }
+
 
     // Anota el momento en que empieza la partida de verdad (cuando termina la espera)
     private void Update()
@@ -82,16 +94,21 @@ public class EnviadorPartida : MonoBehaviour
         }
     }
 
-    private int SegundosDePartida()
+
+    // Segundos exactos (con decimales) desde que empezó la partida de verdad
+    private float SegundosDePartida()
     {
-        return inicioRegistrado ? Mathf.Max(0, Mathf.RoundToInt(Time.time - inicioPartida)) : 0;
+        return inicioRegistrado ? Mathf.Max(0f, Time.time - inicioPartida) : 0f;
     }
 
+
     // ---- Lo que llaman los otros scripts ----
+
 
     public static void RegistrarDisparo(bool acerto, int vidaRestante)
     {
         if (Instancia == null) return;
+
 
         Instancia.disparos.Add(new DisparoDatos
         {
@@ -102,9 +119,11 @@ public class EnviadorPartida : MonoBehaviour
         });
     }
 
+
     public static void RegistrarHabilidad()
     {
         if (Instancia == null) return;
+
 
         Instancia.habilidades.Add(new HabilidadUsoDatos
         {
@@ -113,15 +132,18 @@ public class EnviadorPartida : MonoBehaviour
         });
     }
 
+
     public static void RegistrarCapturaLocal()
     {
         if (Instancia != null && Instancia.segundoCaptura < 0f)
             Instancia.segundoCaptura = Instancia.SegundosDePartida();
     }
 
+
     public static void EnviarFinal()
     {
         if (Instancia == null) return;
+
 
         try
         {
@@ -133,9 +155,11 @@ public class EnviadorPartida : MonoBehaviour
         }
     }
 
+
     public static void EnviarAbandono()
     {
         if (Instancia == null || FinDePartida.Terminada) return;
+
 
         try
         {
@@ -147,11 +171,14 @@ public class EnviadorPartida : MonoBehaviour
         }
     }
 
+
     // ---- Armado y envío ----
+
 
     private void Enviar(string resultado, bool abandono)
     {
         if (yaEnviada) return;
+
 
         if (!inicioRegistrado)
         {
@@ -159,16 +186,21 @@ public class EnviadorPartida : MonoBehaviour
             return;
         }
 
+
         if (string.IsNullOrEmpty(SesionUsuario.Token))
         {
             Debug.LogWarning("[Partida] No hay sesión iniciada (falta el token): no se envía nada");
             return;
         }
 
+
         yaEnviada = true;
 
+
         bool esCazador = GameManager.IsLocalAssassin();
-        int duracion = Mathf.Max(1, SegundosDePartida());
+        // La API pide una duración mayor a 0
+        float duracion = Mathf.Max(0.01f, SegundosDePartida());
+
 
         PartidaDatos datos = new PartidaDatos();
         datos.codigo_partida = PhotonNetwork.InRoom
@@ -178,6 +210,7 @@ public class EnviadorPartida : MonoBehaviour
         datos.rol = esCazador ? "Cazador" : "Prop";
         datos.resultado = string.IsNullOrEmpty(resultado) ? "Derrota" : resultado;
         datos.habilidades = new List<HabilidadUsoDatos>(habilidades);
+
 
         if (esCazador)
         {
@@ -189,10 +222,12 @@ public class EnviadorPartida : MonoBehaviour
         else
         {
             datos.silbidos = SilbidoProp.Local != null ? SilbidoProp.Local.Cantidad : 0;
+            // Nunca puede superar la duración (la API lo rechazaría)
             datos.tiempo_sobrevivido = segundoCaptura >= 0f
-                ? Mathf.Min(duracion, Mathf.RoundToInt(segundoCaptura))
+                ? Mathf.Min(duracion, segundoCaptura)
                 : duracion;
         }
+
 
         if (abandono)
         {
@@ -204,23 +239,29 @@ public class EnviadorPartida : MonoBehaviour
             });
         }
 
+
         bool real = guardarDeVerdad && PhotonNetwork.InRoom;
         if (guardarDeVerdad && !PhotonNetwork.InRoom)
             Debug.LogWarning("[Partida] No estás en una sala: se manda en modo ensayo aunque Guardar De Verdad esté tildado");
 
+
         string url = real ? URL : URL + "?prueba=true";
         string json = JsonUtility.ToJson(datos);
+
 
         Debug.Log("[Partida] Enviando (" + (real ? "DE VERDAD" : "ENSAYO, no se guarda") + "): " + json);
         EjecutorCorrutinas.Ejecutar(Post(url, json, SesionUsuario.Token));
     }
+
 
     private static IEnumerator Post(string url, string json, string token)
     {
         UnityWebRequest pedido = UnityWebRequest.Post(url, json, "application/json");
         pedido.SetRequestHeader("Authorization", "Bearer " + token);
 
+
         yield return pedido.SendWebRequest();
+
 
         if (pedido.result != UnityWebRequest.Result.Success)
             Debug.LogError("[Partida] La API respondió con error: " + pedido.error + " " + pedido.downloadHandler.text);

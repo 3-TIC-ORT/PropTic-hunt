@@ -49,6 +49,7 @@ MonoBehaviour:
   - RPC_Silbar
   - RPC_SetFrozen
   - RPC_DecirFrase
+  - RPC_DecirFraseHabilidad
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 0
