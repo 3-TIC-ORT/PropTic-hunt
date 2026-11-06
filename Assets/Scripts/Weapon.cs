@@ -28,6 +28,22 @@ public class Weapon : MonoBehaviourPun
              "Rotación que lleva el cañón hacia adelante (probá Y = -90 o 90).")]
     public Vector3 manualBarrelEuler = new Vector3(0f, -90f, 0f);
 
+    [Tooltip("Marcalo si el cañón apunta para el lado contrario de donde mira Gero.")]
+    public bool invertirDireccion = true;
+
+    [Tooltip("Dónde agarran las manos, medido desde la parte trasera del arma " +
+             "(0 = en la culata, 0.5 = en el centro). Más bajo = el arma sobresale " +
+             "más hacia adelante y no se mete en el torso.")]
+    [Range(0f, 0.5f)]
+    public float agarreDesdeAtras = 0.2f;
+
+    [Tooltip("Inclinación del cañón en grados. Positivo = apunta hacia abajo.")]
+    public float inclinacion = 15f;
+
+    [Tooltip("Giro en diagonal del cañón en grados. Negativo = hacia la izquierda " +
+             "de Gero, positivo = hacia la derecha.")]
+    public float giroDiagonal = -20f;
+
     [Tooltip("Nombre del objeto vacío dentro de objeto_arma por donde sale la bala. " +
              "Si no existe se usa el centro del arma.")]
     public string worldMuzzleName = "Muzzle";
@@ -63,7 +79,10 @@ public class Weapon : MonoBehaviourPun
     private Transform rightHandBone;
     private Transform leftHandBone;
     private Vector3 weaponLocalCenter;
-    private Quaternion barrelRotation = Quaternion.identity;
+    private bool hasGrip;
+    private bool hasMuzzleDir;
+    private Vector3 muzzleDirLocal;
+    private float weaponLength;
 
     private bool IsOwnerAssassin()
     {
@@ -124,12 +143,18 @@ public class Weapon : MonoBehaviourPun
             weaponLocalCenter = wt.InverseTransformPoint(bounds.center);
         }
 
-        // Orientación del cañón.
-        barrelRotation = Quaternion.Euler(manualBarrelEuler);
+        // Si el modelo tiene un objeto vacío "Grip", ese punto va sobre las manos.
+        Transform grip = wt.Find("Grip");
+        hasGrip = grip != null;
+
+        if (hasGrip)
+            weaponLocalCenter = wt.InverseTransformPoint(grip.position);
+
+        // Dirección del cañón según el Muzzle (en espacio local del arma).
+        hasMuzzleDir = false;
 
         if (worldMuzzle != null)
         {
-            // Automático: gira el arma para que el Muzzle quede hacia adelante.
             Vector3 dir =
                 wt.InverseTransformPoint(worldMuzzle.position) - weaponLocalCenter;
 
@@ -137,8 +162,9 @@ public class Weapon : MonoBehaviourPun
 
             if (dir.sqrMagnitude > 0.0001f)
             {
-                barrelRotation =
-                    Quaternion.FromToRotation(dir.normalized, Vector3.forward);
+                weaponLength = dir.magnitude * 2f;
+                muzzleDirLocal = dir.normalized;
+                hasMuzzleDir = true;
             }
             else
             {
@@ -153,33 +179,60 @@ public class Weapon : MonoBehaviourPun
         return true;
     }
 
-    // Coloca el arma centrada entre las dos manos y apuntando hacia adelante.
+    // Coloca el arma sobre las manos de Gero, apuntando hacia adelante
+    // y en diagonal.
     private void PlaceWorldWeapon()
     {
         if (worldWeaponInstance == null || rightHandBone == null)
             return;
 
+        Transform wt = worldWeaponInstance.transform;
+
+        wt.localScale =
+            worldWeaponPrefab.transform.localScale * weaponScale;
+
+        // 1) Rotación que lleva el cañón hacia adelante.
+        Quaternion barrelRot;
+        Vector3 dir = Vector3.zero;
+
+        if (hasMuzzleDir)
+        {
+            dir = invertirDireccion ? -muzzleDirLocal : muzzleDirLocal;
+            barrelRot = Quaternion.FromToRotation(dir, Vector3.forward);
+        }
+        else
+        {
+            barrelRot = Quaternion.Euler(manualBarrelEuler);
+
+            if (invertirDireccion)
+                barrelRot = Quaternion.Euler(0f, 180f, 0f) * barrelRot;
+        }
+
+        // 2) Diagonal + ajustes manuales, en ejes del jugador.
+        Quaternion rot =
+            transform.rotation *
+            Quaternion.Euler(0f, giroDiagonal, 0f) *
+            Quaternion.Euler(inclinacion, 0f, 0f) *
+            Quaternion.Euler(aimAlignedEuler) *
+            barrelRot;
+
+        // 3) Punto del arma que va sobre las manos: algo detrás del centro,
+        //    para que el arma sobresalga hacia adelante.
+        Vector3 gripLocal = weaponLocalCenter;
+
+        if (!hasGrip && hasMuzzleDir)
+            gripLocal -= dir * weaponLength * agarreDesdeAtras;
+
         Vector3 handsCenter = leftHandBone != null
             ? (rightHandBone.position + leftHandBone.position) * 0.5f
             : rightHandBone.position;
 
-        Quaternion rot =
-            transform.rotation *
-            Quaternion.Euler(aimAlignedEuler) *
-            barrelRotation;
-
-        Transform wt = worldWeaponInstance.transform;
-
         wt.rotation = rot;
-
-        // Ubica el centro del arma sobre el punto medio de las manos.
-        Vector3 centerWorldOffset =
-            rot * Vector3.Scale(weaponLocalCenter, wt.localScale);
 
         wt.position =
             handsCenter +
             transform.rotation * positionOffset -
-            centerWorldOffset;
+            rot * Vector3.Scale(gripLocal, wt.localScale);
     }
 
     // Después de la animación, para que el arma siga a las manos.
