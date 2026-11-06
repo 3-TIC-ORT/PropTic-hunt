@@ -231,8 +231,9 @@ public class Weapon : MonoBehaviourPun
 
         wt.position =
             handsCenter +
-            transform.rotation * positionOffset -
-            rot * Vector3.Scale(gripLocal, wt.localScale);
+            transform.rotation *
+                Vector3.Scale(positionOffset, transform.lossyScale) -
+            rot * Vector3.Scale(gripLocal, wt.lossyScale);
     }
 
     // Después de la animación, para que el arma siga a las manos.

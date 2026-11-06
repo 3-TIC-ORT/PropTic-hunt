@@ -388,7 +388,7 @@ public class PropTransform : MonoBehaviourPun
         Vector3 pivot =
             position +
             frozenRotation *
-            Vector3.Scale(disguisePivotLocal, disguiseRoot.localScale);
+            Vector3.Scale(disguisePivotLocal, disguiseRoot.lossyScale);
 
         Vector3 newPosition = pivot + q * (position - pivot);
 
@@ -661,7 +661,16 @@ public class PropTransform : MonoBehaviourPun
                 0f
             );
 
-        newRoot.localScale = prop.transform.lossyScale;
+        // Compensamos la escala del jugador para que el disfraz conserve
+        // su tamaño real aunque el Player esté achicado.
+        Vector3 playerScale = transform.lossyScale;
+        Vector3 propScale = prop.transform.lossyScale;
+
+        newRoot.localScale = new Vector3(
+            propScale.x / playerScale.x,
+            propScale.y / playerScale.y,
+            propScale.z / playerScale.z
+        );
 
         int pieces = 0;
 
