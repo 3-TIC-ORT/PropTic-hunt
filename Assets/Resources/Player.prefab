@@ -443,9 +443,13 @@ MonoBehaviour:
   weaponVisual: {fileID: 1061131951937481582}
   worldWeaponPrefab: {fileID: 1061131951937481582}
   weaponScale: 0.5
-  positionOffset: {x: 0, y: 0, z: 0}
+  positionOffset: {x: 0, y: 0.1, z: 0}
   aimAlignedEuler: {x: 0, y: 0, z: 0}
   manualBarrelEuler: {x: 0, y: 90, z: 0}
+  invertirDireccion: 1
+  agarreDesdeAtras: 0.2
+  inclinacion: 8
+  giroDiagonal: -45
   worldMuzzleName: Muzzle
   cameraTransform: {fileID: 1631439276020059449}
   muzzlePoint: {fileID: 3488341117076015550}
