@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 43406e154dbdb441580bef04cbbb716c
+guid: 1bf4cbf7e78e141f6af152bd3de8a809
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
@@ -7,48 +7,13 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: Material
-    second: {fileID: 2100000, guid: 148de5939fac249189256d0ba3e6165c, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
       name: Material.001
-    second: {fileID: 2100000, guid: 286a6ffa295d14acdb06c5d3945f38fa, type: 2}
+    second: {fileID: 2100000, guid: 451add6423e66473286b9618e689508b, type: 2}
   - first:
-      type: UnityEngine:Material
+      type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
-      name: Material.002
-    second: {fileID: 2100000, guid: be609ccff5ce244168f877a2c819f302, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Material.003
-    second: {fileID: 2100000, guid: d1f82a3af0e2b426287902fb49986447, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Material.004
-    second: {fileID: 2100000, guid: 3b88b275c4bfe4576950633472d8d3c4, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Material.005
-    second: {fileID: 2100000, guid: d394d1235590d4c92b56402f8750ffb6, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Material.006
-    second: {fileID: 2100000, guid: 17d83fc8e5b0043a98cc08d66d6ee77d, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Material.007
-    second: {fileID: 2100000, guid: dab3393892fd44e29bb236809f17619a, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Material.008
-    second: {fileID: 2100000, guid: 00af0f0bcc8a64087bdd90241c36a0bf, type: 2}
+      name: aurovic
+    second: {fileID: 2800000, guid: 2d665b79cd7294b279770bedf6aacb80, type: 3}
   materials:
     materialImportMode: 2
     materialName: 0
