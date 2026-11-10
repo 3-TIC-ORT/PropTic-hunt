@@ -42629,6 +42629,33 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 8530459506952857525, guid: decbab106903240f7bf8569f13700175, type: 3}
+--- !u!1 &688482764 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8719771546195959716, guid: 687a95eac1d9442a1841c3c332c2b0e0, type: 3}
+  m_PrefabInstance: {fileID: 838286034}
+  m_PrefabAsset: {fileID: 0}
+--- !u!64 &688482766
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 688482764}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 0}
 --- !u!64 &691990800
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -51213,6 +51240,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7036213049465896255, guid: 687a95eac1d9442a1841c3c332c2b0e0, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1872191184}
+    - targetCorrespondingSourceObject: {fileID: 6905609870639353253, guid: 687a95eac1d9442a1841c3c332c2b0e0, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 883570684}
+    - targetCorrespondingSourceObject: {fileID: 8719771546195959716, guid: 687a95eac1d9442a1841c3c332c2b0e0, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 688482766}
     - targetCorrespondingSourceObject: {fileID: -8032777292505218901, guid: 687a95eac1d9442a1841c3c332c2b0e0, type: 3}
       insertIndex: -1
       addedObject: {fileID: 830233028}
@@ -51363,9 +51396,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4258499498166454290, guid: 687a95eac1d9442a1841c3c332c2b0e0, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1522756250}
-    - targetCorrespondingSourceObject: {fileID: 4258499498166454290, guid: 687a95eac1d9442a1841c3c332c2b0e0, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1522756252}
     - targetCorrespondingSourceObject: {fileID: -3100404384064151999, guid: 687a95eac1d9442a1841c3c332c2b0e0, type: 3}
       insertIndex: -1
       addedObject: {fileID: 429086440}
@@ -54682,6 +54712,33 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 4579454407841743219, guid: 00679c3ced7fa4bbf916d7d73ecd55d7, type: 3}
+--- !u!1 &883570682 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6905609870639353253, guid: 687a95eac1d9442a1841c3c332c2b0e0, type: 3}
+  m_PrefabInstance: {fileID: 838286034}
+  m_PrefabAsset: {fileID: 0}
+--- !u!64 &883570684
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 883570682}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 0}
 --- !u!1001 &883842625
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -99069,28 +99126,6 @@ MeshCollider:
   m_CookingOptions: 30
   m_Mesh: {fileID: 6405055333489277325, guid: decbab106903240f7bf8569f13700175, type: 3}
 --- !u!64 &1522756250
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 830233017}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 0}
---- !u!64 &1522756252
 MeshCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
