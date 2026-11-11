@@ -35,6 +35,6 @@ public class PuntosHUD : MonoBehaviour
         }
 
         PuntosDatos datos = JsonUtility.FromJson<PuntosDatos>(pedido.downloadHandler.text);
-        texto.text = datos.puntos_totales + " PTS";
+        texto.text = datos.puntos_totales;
     }
 }
