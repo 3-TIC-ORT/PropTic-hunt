@@ -509,8 +509,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HabilidadCazador
   tecla: 17
   disparosProtegidos: 5
-  tiempoRecarga: 40
-  frases: []
+  tiempoRecarga: 45
+  frases:
+  - {fileID: 8300000, guid: 3bfc064e4914462448599c459c5fe068, type: 3}
+  - {fileID: 8300000, guid: 40b0d1d488133ab42ad8b128882d4314, type: 3}
+  - {fileID: 8300000, guid: 7372cd4e5daf3f143b97932a938f6428, type: 3}
+  - {fileID: 8300000, guid: 8b676d860665ee046a04cfdc90f69526, type: 3}
+  - {fileID: 8300000, guid: 8acb72069c6fc95489bbc408954e52f5, type: 3}
 --- !u!114 &-7713558581430170058
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -523,7 +528,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 85e9beccce2d18844b76780b42f662d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VidaCazador
-  vidaMaxima: 70
+  vidaMaxima: 100
 --- !u!114 &6083430179655187017
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -537,7 +542,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SilbidoProp
   tecla: 20
-  tiempoEspera: 15
+  tiempoEspera: 20
   frases:
   - {fileID: 8300000, guid: f05d45dfc0a505743941057724e7b08e, type: 3}
   - {fileID: 8300000, guid: eaa61b16946662a418bbc1aab263b143, type: 3}
@@ -550,7 +555,8 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 8c82a508d0098d64cba4a3df7b032bda, type: 3}
   - {fileID: 8300000, guid: 8d04b977fae048346afe78421866b6cd, type: 3}
   - {fileID: 8300000, guid: 11f4dc78238b7354baba0e139acf51f9, type: 3}
-  - {fileID: 8300000, guid: ab26bbf4b1e1a5e418b446ce8690a669, type: 3}
+  - {fileID: 8300000, guid: 5d0c0b72ebbdae341a0c304ff8814294, type: 3}
+  - {fileID: 8300000, guid: ac6b57ead3d69754b84fcb9508e98dab, type: 3}
   permitirAlCazadorEnPruebas: 0
 --- !u!114 &3995826123857527652
 MonoBehaviour:
@@ -565,7 +571,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SilbidoAutomatico
   sonido: {fileID: 8300000, guid: a734a8e2c778502428ef375fbea10532, type: 3}
-  cadaSegundos: 10
+  cadaSegundos: 12
   pitchCerca: 1
   pitchLejos: 0.7
   distanciaMinima: 3
