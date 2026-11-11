@@ -57,7 +57,7 @@ public class RoomLobbyUI : MonoBehaviourPunCallbacks
     [Header("Texto de las filas")]
     [Tooltip("Opcional. Si queda vacío usa la fuente por defecto de TMP.")]
     [SerializeField] private TMP_FontAsset nameFont;
-    [SerializeField] private float nameFontSize = 28f;
+    [SerializeField] private float nameFontSize = 10f;
     [SerializeField] private Color filledTextColor = Color.white;
     [SerializeField] private Color emptyTextColor =
         new Color(0.48f, 0.44f, 0.84f, 1f);
@@ -303,7 +303,7 @@ public class RoomLobbyUI : MonoBehaviourPunCallbacks
         rt.anchorMax = new Vector2(1f, 0.5f);
         rt.pivot = new Vector2(0f, 0.5f);
         rt.anchoredPosition = new Vector2(16f, 0f);
-        rt.sizeDelta = new Vector2(-30f, 10f);
+        rt.sizeDelta = new Vector2(-30f, 8f);
         rt.localScale = Vector3.one;
         rt.localRotation = Quaternion.identity;
 
