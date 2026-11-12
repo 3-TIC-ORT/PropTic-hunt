@@ -21,7 +21,7 @@ public class SilbidoAutomatico : MonoBehaviourPun
         fuente = gameObject.AddComponent<AudioSource>();
         fuente.playOnAwake = false;
         fuente.spatialBlend = 1f; // 3D: mas fuerte cuanto mas cerca
-        fuente.rolloffMode = AudioRolloffMode.Linear;
+        fuente.rolloffMode = AudioRolloffMode.Logarithmic;
         fuente.minDistance = distanciaMinima;
         fuente.maxDistance = distanciaMaxima;
     }
