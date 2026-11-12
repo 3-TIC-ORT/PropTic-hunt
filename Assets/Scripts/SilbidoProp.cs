@@ -33,8 +33,8 @@ public class SilbidoProp : MonoBehaviourPun
         fuente = gameObject.AddComponent<AudioSource>();
         fuente.playOnAwake = false;
         fuente.spatialBlend = 1f; // sonido 3D: se oye más fuerte cuanto más cerca
-        fuente.rolloffMode = AudioRolloffMode.Linear;
-        fuente.minDistance = 3f;
+        fuente.rolloffMode = AudioRolloffMode.Logarithmic;
+        fuente.minDistance = 2f;
         fuente.maxDistance = 40f;
 
         silbidoAuto = GetComponent<SilbidoAutomatico>();
