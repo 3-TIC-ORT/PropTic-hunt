@@ -69355,7 +69355,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RelojPartida
   textoReloj: {fileID: 692406063}
-  duracionEspera: 10
+  duracionEspera: 80
   retrasoInicio: 3
   alTerminarLaEspera:
     m_PersistentCalls:
@@ -77610,7 +77610,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f9a65c5f1dd96ba4188165e64db2f574, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnviadorPartida
-  guardarDeVerdad: 0
+  guardarDeVerdad: 1
 --- !u!4 &974121605
 Transform:
   m_ObjectHideFlags: 0
@@ -89812,7 +89812,7 @@ MonoBehaviour:
   fondoResultado: {fileID: 723815287}
   colorGane: {r: 0.12, g: 0.55, b: 0.25, a: 0.92}
   colorPerdi: {r: 0.7, g: 0.12, b: 0.12, a: 0.92}
-  duracionPartida: 100
+  duracionPartida: 300
 --- !u!4 &1095154315
 Transform:
   m_ObjectHideFlags: 0
